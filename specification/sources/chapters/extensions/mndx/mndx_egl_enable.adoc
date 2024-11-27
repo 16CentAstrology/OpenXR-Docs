@@ -5,7 +5,7 @@
 include::{generated}/meta/XR_MNDX_egl_enable.adoc[]
 
 *Last Modified Date*::
-    2020-05-21
+    2023-12-02
 *IP Status*::
     No known IP claims.
 *Contributors*::
@@ -38,7 +38,7 @@ elink:XrStructureType enumeration is extended with:
 --
 The slink:XrGraphicsBindingEGLMNDX structure is defined as:
 
-include::{generated}/api/structs/XrGraphicsBindingEGLMNDX.txt[]
+include::{generated}/api/structs/XrGraphicsBindingEGLMNDX.adoc[]
 
 .Member Descriptions
 ****
@@ -60,10 +60,27 @@ chain of the slink:XrSessionCreateInfo.
 The required window system configuration define to expose this structure
 type is dlink:XR_USE_PLATFORM_EGL.
 
-include::{generated}/validity/structs/XrGraphicsBindingEGLMNDX.txt[]
+include::{generated}/validity/structs/XrGraphicsBindingEGLMNDX.adoc[]
 --
 
 *New Functions*
+
+*New Function Pointers*
+
+[open,refpage='PFN_xrEglGetProcAddressMNDX',type='funcpointers',desc='typedef of eglGetProcAddress',xrefs='']
+--
+include::{generated}/api/funcpointers/PFN_xrEglGetProcAddressMNDX.adoc[]
+
+.Parameter Descriptions
+****
+* pname:name specifies the name of the function to return.
+****
+
+eglGetProcAddress returns the address of the client API or EGL function
+named by procname.
+For details please see
+https://registry.khronos.org/EGL/sdk/docs/man/html/eglGetProcAddress.xhtml
+--
 
 *Issues*
 
@@ -71,3 +88,8 @@ include::{generated}/validity/structs/XrGraphicsBindingEGLMNDX.txt[]
 
 * Revision 1, 2020-05-20 (Jakob Bornecrantz)
 ** Initial draft
+
+* Revision 2, 2023-12-02
+** Use `PFN_xrEglGetProcAddressMNDX` to replace `PFNEGLGETPROCADDRESSPROC`
+   (for `eglGetProcAddress`).
+   Note this does change function pointer attributes on some platforms.

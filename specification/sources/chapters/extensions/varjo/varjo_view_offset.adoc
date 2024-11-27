@@ -12,6 +12,8 @@ include::{generated}/meta/XR_VARJO_view_offset.adoc[]
 *Contributors*::
     Rémi Arnaud, Varjo Technologies +
 
+// REUSE-IgnoreStart
+
 // "This submission is provided subject to and covered by the Khronos Group Intellectual
 // Property ("IP") Rights Policy. No other rights are granted by this submission, and
 // Khronos may elect to exercise its Copyright  license to incorporate this submission into
@@ -74,7 +76,7 @@ a session.
 --
 The flink:xrSetViewOffsetVARJO function is defined as:
 
-include::{generated}/api/protos/xrSetViewOffsetVARJO.txt[]
+include::{generated}/api/protos/xrSetViewOffsetVARJO.adoc[]
 
 .Parameter Descriptions
 ****
@@ -99,7 +101,7 @@ active, a.k.a.
 in MR (ename:XR_ENVIRONMENT_BLEND_MODE_ALPHA_BLEND or
 ename:XR_ENVIRONMENT_BLEND_MODE_ADDITIVE).
 
-include::{generated}/validity/protos/xrSetViewOffsetVARJO.txt[]
+include::{generated}/validity/protos/xrSetViewOffsetVARJO.adoc[]
 
 *Version History*
 

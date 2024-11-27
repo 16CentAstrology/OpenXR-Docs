@@ -12,15 +12,15 @@ include::{generated}/meta/XR_FB_hand_tracking_capsules.adoc[]
 
 *Overview*
 
-The <<XR_EXT_hand_tracking>> extension provides a list of hand joint poses
-which include a collision sphere for each joint.
+The apiext:XR_EXT_hand_tracking extension provides a list of hand joint
+poses which include a collision sphere for each joint.
 However some physics systems prefer to use capsules as a collision stand in
 for the hands.
 
 This extension allows:
 
 * An application to get a list of capsules that represent the volume of the
-  hand when using the <<XR_EXT_hand_tracking>> extension.
+  hand when using the apiext:XR_EXT_hand_tracking extension.
 
 *New Object Types*
 
@@ -48,7 +48,7 @@ elink:XrStructureType enumeration is extended with:
 --
 The slink:XrHandCapsuleFB structure is defined as:
 
-include::{generated}/api/structs/XrHandCapsuleFB.txt[]
+include::{generated}/api/structs/XrHandCapsuleFB.adoc[]
 
 It describes a collision capsule associated with a hand joint.
 
@@ -57,10 +57,10 @@ It describes a collision capsule associated with a hand joint.
 * pname:points are the two points defining the capsule length.
 * pname:radius is the radius of the capsule.
 * pname:joint is the hand joint that drives this capsule's transform.
-  Multiple capsules can be attached to the same joint.
+  Multiple capsules may: be attached to the same joint.
 ****
 
-include::{generated}/validity/structs/XrHandCapsuleFB.txt[]
+include::{generated}/validity/structs/XrHandCapsuleFB.adoc[]
 --
 
 [open,refpage='XrHandTrackingCapsulesStateFB',type='structs',desc='A list of capsules associated to hand joints',xrefs='']
@@ -72,7 +72,7 @@ request collision capsule information associated with this hand.
 
 The slink:XrHandTrackingCapsulesStateFB structure is defined as:
 
-include::{generated}/api/structs/XrHandTrackingCapsulesStateFB.txt[]
+include::{generated}/api/structs/XrHandTrackingCapsulesStateFB.adoc[]
 
 .Member Descriptions
 ****
@@ -83,7 +83,7 @@ include::{generated}/api/structs/XrHandTrackingCapsulesStateFB.txt[]
 * pname:capsules is an array of capsules.
 ****
 
-include::{generated}/validity/structs/XrHandTrackingCapsulesStateFB.txt[]
+include::{generated}/validity/structs/XrHandTrackingCapsulesStateFB.adoc[]
 --
 
 *New Functions*
@@ -94,7 +94,7 @@ include::{generated}/validity/structs/XrHandTrackingCapsulesStateFB.txt[]
 
 * Revision 1, 2021-07-07 (Federico Schliemann)
 ** Initial extension description
-* Revision 2, 2021-11-18 (Ryan Pavlik, Collabora, Ltd)
+* Revision 2, 2021-11-18 (Rylie Pavlik, Collabora, Ltd.)
 ** Fix typos/naming convention errors: rename
    `XR_FB_HAND_TRACKING_CAPSULE_POINT_COUNT` to
    `XR_HAND_TRACKING_CAPSULE_POINT_COUNT_FB` and

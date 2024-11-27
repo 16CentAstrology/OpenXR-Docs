@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2022, The Khronos Group Inc.
+// Copyright (c) 2017-2024, The Khronos Group Inc.
 //
 // SPDX-License-Identifier: CC-BY-4.0
 
@@ -38,7 +38,7 @@ bit.
 Otherwise, it may: cause undefined behavior, including an application crash.
 
 Runtimes that implement this extension must: support the
-`<<XR_KHR_vulkan_enable>>` or the `<<XR_KHR_vulkan_enable2>>` extension.
+apiext:XR_KHR_vulkan_enable or the apiext:XR_KHR_vulkan_enable2 extension.
 
 *New Object Types*
 
@@ -52,7 +52,7 @@ Runtimes that implement this extension must: support the
 
 [open,refpage='XrVulkanSwapchainCreateInfoMETA',type='structs',desc='Debug utils object name info']
 --
-include::{generated}/api/structs/XrVulkanSwapchainCreateInfoMETA.txt[]
+include::{generated}/api/structs/XrVulkanSwapchainCreateInfoMETA.adoc[]
 
 .Member Descriptions
 ****
@@ -70,7 +70,7 @@ The runtime must: return ename:XR_ERROR_FEATURE_UNSUPPORTED if any bit of
 either pname:additionalCreateFlags or pname:additionalUsageFlags is not
 supported.
 
-include::{generated}/validity/structs/XrVulkanSwapchainCreateInfoMETA.txt[]
+include::{generated}/validity/structs/XrVulkanSwapchainCreateInfoMETA.adoc[]
 --
 
 *New Functions*

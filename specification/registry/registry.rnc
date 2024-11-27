@@ -1,4 +1,4 @@
-# Copyright (c) 2013-2022, The Khronos Group Inc.
+# Copyright (c) 2013-2024, The Khronos Group Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -30,11 +30,12 @@ start =
          | Types*
          | Enums*
          | Commands*
+         | InteractionProfiles*
          | Feature*
          | Extensions*)*
     }
 
-# <vendorids> defines vendor IDs for vendors without PCI vendor IDs
+# <vendorids> defines vendor IDs for vendors without USB vendor IDs
 VendorIds = element vendorids { CommentAttr?, VendorId* }
 
 # <vendorid> defines a single vendor ID.
@@ -160,7 +161,7 @@ TypeStruct =
     attribute alias { XrTypeName_t }?,
     attribute protect { XrUpperSnakeCase_t }?,
     # structextends indicates to which struct this may be chained on the next pointer.
-    attribute structextends { XrTypeNameRef_t }?,
+    attribute structextends { XrTypeNameListRef_t }?,
     MayAliasAttr?,
     ReturnedOnlyAttr?,
     (# Struct has type and next
@@ -253,7 +254,8 @@ EnumInEnums =
         mixed {
             attribute value { xsd:long },
             attribute name { XrUpperSnakeCase_t },
-            CommentAttr?
+            CommentAttr?,
+            attribute deprecated { "true" | "ignored" }?
         }
     }
 
@@ -267,7 +269,8 @@ BitmaskEnumInEnums =
     element enum {
         BitposAttr,
         attribute name { XrUpperSnakeCase_t },
-        CommentAttr?
+        CommentAttr?,
+        attribute deprecated { "true" | "ignored" }?
     }
 
 # <unused> defines a range of enumerants not currently being used
@@ -317,6 +320,45 @@ Command =
           }?
       }
 
+# <interaction_profiles> defines a group of interaction profiles
+InteractionProfiles =
+    element interaction_profiles {
+        CommentAttr?, InteractionProfileElt*
+    }
+# <interaction_profile> defines a single component path in an interaction profile
+InteractionProfileComponentElt =
+    element component {
+        attribute user_path { XrPathString_t }?,
+        attribute subpath { XrPathString_t },
+        attribute type { XrInteractionComponentType_t },
+        attribute system { "true" }?
+    }
+
+# <user_path> defines a single top-level /user path valid for a given interaction profile
+InteractionProfileUserPathElt =
+    element user_path {
+        attribute path { XrPathString_t }
+    }
+
+# <interaction_profile> defines a single interaction profile path
+InteractionProfileElt =
+    element interaction_profile {
+        # actually the path
+        attribute name { XrPathString_t },
+        attribute title { text },
+        CommentAttr?,
+
+        InteractionProfileUserPathElt+,
+
+        InteractionProfileComponentElt+
+    }
+
+ExtendInteractionProfileElt =
+    element extend {
+        attribute interaction_profile_path { XrPathString_t },
+        InteractionProfileComponentElt*
+    }
+
 # Each <feature> defines the interface of an API version.
 Feature =
     element feature {
@@ -326,9 +368,11 @@ Feature =
         ProtectAttr?,
         CommentAttr?,
         (element require {
-             ExtensionNameAttr?,
+             DependsAttr?,
              CommentAttr?,
-             (InterfaceElement | CommentElt)*
+             (InterfaceElement
+              | CommentElt
+              | ExtendInteractionProfileElt)*
          }
          | element remove {
                CommentAttr?, (InterfaceElement | CommentElt)*
@@ -341,26 +385,27 @@ Extensions = element extensions { CommentAttr?, Extension* }
 # tag, but with slightly different attributes.
 Extension =
     element extension {
-        NameAttr,
+        attribute name { XrExtName_t },
         attribute number { IntegerOrHex_t },
         ProtectAttr?,
         # attribute author { text }?,
         # attribute contact { text }?,
         attribute type { "instance" },
-        attribute requires { XrExtNameList_t }?,
-        # attribute requiresCore { text }?,
+        DependsAttr?,
         attribute supported { "openxr" | "disabled" }?,
         attribute promotedto { text }?,
-        # attribute deprecatedby { text }?,
-        # attribute obsoletedby { text }?,
+        attribute deprecatedby { text }?,
+        attribute obsoletedby { text }?,
         attribute provisional { "true" }?,
         CommentAttr?,
         (element require {
              attribute api { text }?,
              attribute feature { text }?,
-             ExtensionNameAttr?,
+             DependsAttr?,
              CommentAttr?,
-             (InterfaceElement | CommentElt)*
+             (InterfaceElement
+              | CommentElt
+              | ExtendInteractionProfileElt)*
          }
          | element remove {
                attribute api { text }?,
@@ -368,6 +413,7 @@ Extension =
                (InterfaceElement | CommentElt)*
            })*
     }
+
 # Contents of a <require> / <remove> tag, defining a group
 # of features to require or remove.
 #
@@ -407,11 +453,11 @@ InterfaceElement =
              CommentAttr)
           | (# Extending another
              attribute name { XrUpperSnakeCase_t },
-             (attribute offset { xsd:integer } |
-             attribute alias { XrUpperSnakeCase_t }),
+             (attribute offset { xsd:integer }
+              | attribute alias { XrUpperSnakeCase_t }),
              attribute extends { XrTypeNameRef_t },
              attribute dir { "-" }?,
-
+             attribute extnumber { xsd:unsignedInt }?,
              CommentAttr?)
           | (# Extending another bitmask
              attribute name { XrUpperSnakeCase_t },
@@ -419,13 +465,21 @@ InterfaceElement =
              attribute extends { XrTypeNameRef_t },
              CommentAttr?)
       }
+    | element interaction_profile {
+          # actually the path
+          attribute name { XrPathString_t }
+      }
 
 # What is used in the name attribute of the platform defines include.
 PlatformDefinesName = "openxr_platform_defines"
 
 # Data types - all end in _t
+# exception: settings_file_location name predates validation
 MemberOrParamName_t =
-    xsd:NCName { pattern = "[a-z]+([A-Z]+[a-z]*)*" }
+    xsd:NCName {
+        pattern =
+            "settings_file_location|[a-z]([a-z0-9]*)([A-Z][a-z0-9]*)*"
+    }
 VendorId_t = xsd:ID { pattern = "[A-Z]+" }
 VendorIdRef_t = xsd:IDREF { pattern = "[A-Z]+" }
 HexValue_t = xsd:token { pattern = "0[xX][0-9a-fA-F]+" }
@@ -443,11 +497,21 @@ XrPFNName_t = xsd:NCName { pattern = "PFN_xr([A-Z]+[a-z0-9]*)+" }
 
 XrTypeName_t = xsd:NCName { pattern = "Xr([A-Z]+[a-z0-9]*)+" }
 XrTypeNameRef_t = xsd:NCName { pattern = "Xr([A-Z]+[a-z0-9]*)+" }
+XrTypeNameListRef_t =
+    xsd:token {
+        pattern = "Xr([A-Z]+[a-z0-9]*)+(,Xr([A-Z]+[a-z0-9]*)+)*"
+    }
 
 XrExtName_t = xsd:NCName { pattern = "XR_[A-Z]+(_[A-Za-z0-9]+)+" }
+XrExtNameExpression_t =
+    xsd:token {
+        pattern =
+            "XR_[A-Z]+(_[A-Za-z0-9]+)+([+,]XR_[A-Z]+(_[A-Za-z0-9]+)+)*"
+    }
 
-
-XrExtNameList_t = xsd:token { pattern = "XR_[A-Z]+(_[A-Za-z0-9]+)+(,XR_[A-Z]+(_[A-Za-z0-9]+)+)*" }
+XrPathString_t = xsd:token { pattern = "/[a-z0-9_\-]+(/[a-z0-9_\-]+)*" }
+XrInteractionComponentType_t =
+    xsd:NCName { pattern = "XR_ACTION_TYPE_[A-Z0-9]+(_INPUT|_OUTPUT)" }
 
 ReturnCodes_t =
     xsd:token {
@@ -462,6 +526,10 @@ XrEntityName_t =
     XrUpperSnakeCase_t | XrFuncName_t | XrPFNName_t | XrTypeName_t
 
 # Repeatedly used attributes
+DependsAttr =
+    attribute depends {
+        XrExtNameExpression_t | "XR_VERSION_1_0" | "XR_VERSION_1_1"
+    }
 ExtensionNameAttr = attribute extension { XrExtName_t }
 VendorAttr = attribute vendor { VendorIdRef_t }
 CommentAttr = attribute comment { text }
@@ -490,5 +558,6 @@ OptionalAttr = attribute optional { "true" }
 
 # Repeatedly used elements
 TypeRefElt = element type { xsd:NCName }
-ParamOrMemberNameElt = element name { xsd:NCName }
+ParamOrMemberNameElt = element name { MemberOrParamName_t }
 CommentElt = element comment { text }
+

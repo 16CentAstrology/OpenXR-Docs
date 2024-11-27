@@ -13,6 +13,8 @@ include::{generated}/meta/XR_VARJO_composition_layer_depth_test.adoc[]
     Antti Hirvonen, Varjo Technologies +
     Rémi Arnaud, Varjo Technologies
 
+// REUSE-IgnoreStart
+
 // "This submission is provided subject to and covered by the Khronos Group Intellectual
 // Property ("IP") Rights Policy. No other rights are granted by this submission, and
 // Khronos may elect to exercise its Copyright  license to incorporate this submission into
@@ -23,12 +25,12 @@ include::{generated}/meta/XR_VARJO_composition_layer_depth_test.adoc[]
 This extension enables depth-based layer composition inside the compositor.
 
 Core OpenXR specifies that layer compositing must happen in the layer
-submission order (as described in <<Compositing>>).
+submission order (as described in <<rendering-compositing>>).
 However, an application may want to composite the final image against the
 other layers based on depth information for proper occlusion.
 Layers can now provide depth information that will be used to calculate
 occlusion between those layers, as well as with the environment depth
-estimator (`<<XR_VARJO_environment_depth_estimation>>`) when enabled.
+estimator (apiext:XR_VARJO_environment_depth_estimation) when enabled.
 
 This extension defines a new type, slink:XrCompositionLayerDepthTestVARJO,
 which can be chained to slink:XrCompositionLayerProjection in order to
@@ -41,8 +43,8 @@ potentially covering only a subset of the full depth range.
 Layer composition rules change when this extension is enabled.
 
 If the application does not chain slink:XrCompositionLayerDepthTestVARJO,
-"painter's algorithm" such as described in <<Compositing>> must be used for
-layer composition.
+"painter's algorithm" such as described in <<rendering-compositing>> must be
+used for layer composition.
 
 Overall, composition should be performed in the following way:
 
@@ -66,7 +68,7 @@ Overall, composition should be performed in the following way:
 Mixed reality applications may want to show hands on top of the rendered VR
 content.
 For this purpose the application should enable environment depth estimation
-(see `<<XR_VARJO_environment_depth_estimation>>` extension) and depth
+(see apiext:XR_VARJO_environment_depth_estimation extension) and depth
 testing with range 0m to 1m.
 
 The following code illustrates how to enable depth testing:
@@ -95,7 +97,7 @@ depth testing functionality.
 
 The slink:XrCompositionLayerDepthTestVARJO structure is defined as:
 
-include::{generated}/api/structs/XrCompositionLayerDepthTestVARJO.txt[]
+include::{generated}/api/structs/XrCompositionLayerDepthTestVARJO.adoc[]
 
 .Member Descriptions
 ****
@@ -115,7 +117,7 @@ include::{generated}/api/structs/XrCompositionLayerDepthTestVARJO.txt[]
   bound.
 ****
 
-include::{generated}/validity/structs/XrCompositionLayerDepthTestVARJO.txt[]
+include::{generated}/validity/structs/XrCompositionLayerDepthTestVARJO.adoc[]
 
 --
 
@@ -129,5 +131,5 @@ elink:XrStructureType enumeration is extended with:
 
 * Revision 1, 2021-02-16 (Sergiy Dubovik)
 ** Initial extension description
-* Revision 2, 2021-07-15 (Ryan Pavlik, Collabora, and Sergiy Dubovik)
+* Revision 2, 2021-07-15 (Rylie Pavlik, Collabora, Ltd., and Sergiy Dubovik)
 ** Update sample code so it is buildable

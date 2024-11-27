@@ -1,11 +1,11 @@
-// Copyright (c) 2019-2022, The Khronos Group Inc.
+// Copyright (c) 2019-2024, The Khronos Group Inc.
 //
 // SPDX-License-Identifier: CC-BY-4.0
 
 ifdef::doctype-manpage[]
 .Warning
 ****
-This belongs to the `<<XR_EXT_conformance_automation>>` extension.
+This belongs to the apiext:XR_EXT_conformance_automation extension.
 This extension is **not** intended for use by non-conformance-test
 applications.
 A runtime may: require a runtime-specified configuration such as a

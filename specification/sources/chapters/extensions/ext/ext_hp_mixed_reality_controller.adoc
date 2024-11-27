@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2022, The Khronos Group Inc.
+// Copyright (c) 2020-2024, The Khronos Group Inc.
 //
 // SPDX-License-Identifier: CC-BY-4.0
 
@@ -23,6 +23,12 @@ This extension added a new interaction profile path for the HP Reverb G2
 Controllers:
 
 * pathname:/interaction_profiles/hp/mixed_reality_controller
+
+// This extension does not meet the current style guide requirements:
+// the path name must be vendor-suffixed in new extensions.
+:legacy-path: /interaction_profiles/hp/mixed_reality_controller
+:properly-suffixed-path: /interaction_profiles/hp/mixed_reality_controller_hp
+include::{config}/interaction_profile_missing_suffix_warning.adoc[]
 
 Valid for the user paths
 
@@ -49,6 +55,10 @@ Supported component paths:
 ** subpathname:/input/grip/pose
 ** subpathname:/input/aim/pose
 ** subpathname:/output/haptic
+
+include::{config}/grip_surface_notice.adoc[]
+include::{config}/ext_palm_pose_notice.adoc[]
+include::{config}/ext_hand_interaction_notice.adoc[]
 
 *Version History*
 

@@ -1,10 +1,10 @@
-"""Provides EntityDatabase, a class that keeps track of spec-defined entities and associated macros."""
-
+# Copyright 2018-2024, The Khronos Group Inc.
 # Copyright (c) 2018-2019 Collabora, Ltd.
 #
 # SPDX-License-Identifier: Apache-2.0
 #
-# Author(s):    Ryan Pavlik <ryan.pavlik@collabora.com>
+# Author(s):    Rylie Pavlik <rylie.pavlik@collabora.com>
+"""Provides EntityDatabase, a class that keeps track of spec-defined entities and associated macros."""
 
 from abc import ABC, abstractmethod
 
@@ -182,7 +182,7 @@ class EntityDatabase(ABC):
             self.addEntity(name, 'code', elem=info.elem, generates=False)
 
         else:
-            raise RuntimeError('unrecognized category {}'.format(cat))
+            raise RuntimeError(f'unrecognized category {cat}')
 
     def handleCommand(self, name, info):
         """Add entities, if appropriate, for an item in registry.cmddict.
@@ -249,7 +249,7 @@ class EntityDatabase(ABC):
                 if alias in self._byEntity:
                     return self.findEntity(alias)
 
-            assert(not "Alias without main entry!")
+            assert not "Alias without main entry!"
 
         return None
 
@@ -274,7 +274,7 @@ class EntityDatabase(ABC):
             tag = 'member'
         else:
             tag = 'param'
-        return data.elem.findall('.//{}'.format(tag))
+        return data.elem.findall(f'.//{tag}')
 
     def getMemberNames(self, commandOrStruct):
         """Given a command or struct name, retrieve the names of each member/param.
@@ -287,7 +287,7 @@ class EntityDatabase(ABC):
         ret = []
         for member in members:
             name_tag = member.find('name')
-            if name_tag:
+            if name_tag is not None:
                 ret.append(name_tag.text)
         return ret
 
@@ -400,7 +400,7 @@ class EntityDatabase(ABC):
         alias_set = self._aliasSetsByEntity.get(first_entity_name)
         if not alias_set:
             # If this assert fails, we have goofed in addAlias
-            assert(second_entity_name not in self._aliasSetsByEntity)
+            assert second_entity_name not in self._aliasSetsByEntity
 
             return False
 
@@ -452,7 +452,7 @@ class EntityDatabase(ABC):
         other_alias_set = self._aliasSetsByEntity.get(entityName)
         if alias_set and other_alias_set:
             # If this fails, we need to merge sets and update.
-            assert(alias_set is other_alias_set)
+            assert alias_set is other_alias_set
 
         if not alias_set:
             # Try looking by the other name.
@@ -505,7 +505,10 @@ class EntityDatabase(ABC):
 
         # Look up category based on the macro, if category isn't specified.
         if category is None:
-            category = self._categoriesByMacro.get(macro)[0]
+            cats = self._categoriesByMacro.get(macro)
+            if not cats:
+                raise RuntimeError(f"Could not determine category for {macro}")
+            category = cats[0]
 
         if generates is None:
             potential_dir = directory or category
@@ -518,7 +521,7 @@ class EntityDatabase(ABC):
 
         # Don't generate a filename if this entity doesn't generate includes.
         if filename is None and generates:
-            filename = '{}/{}.txt'.format(directory, entityName)
+            filename = f'{directory}/{entityName}.adoc'
 
         data = EntityData(
             entity=entityName,
@@ -569,7 +572,7 @@ class EntityDatabase(ABC):
         # Retrieve from subclass, if overridden, then store locally.
         self._supportExclusionSet = set(self.getExclusionSet())
 
-        # Entities that get a generated/api/category/entity.txt file.
+        # Entities that get a generated/api/category/entity.adoc file.
         self._generating_entities = {}
 
         # Name prefix members
@@ -578,7 +581,7 @@ class EntityDatabase(ABC):
         ) + self.name_prefix[1:]
         # Regex string for the name prefix that is case-insensitive.
         self.case_insensitive_name_prefix_pattern = ''.join(
-            ('[{}{}]'.format(c.upper(), c) for c in self.name_prefix))
+            (f'[{c.upper()}{c}]' for c in self.name_prefix))
 
         self.platform_requires = self.getPlatformRequires()
 

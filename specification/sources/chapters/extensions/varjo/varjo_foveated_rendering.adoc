@@ -13,6 +13,8 @@ include::{generated}/meta/XR_VARJO_foveated_rendering.adoc[]
     Rémi Arnaud, Varjo Technologies +
     Antti Hirvonen, Varjo Technologies
 
+// REUSE-IgnoreStart
+
 // "This submission is provided subject to and covered by the Khronos Group Intellectual
 // Property ("IP") Rights Policy. No other rights are granted by this submission, and
 // Khronos may elect to exercise its Copyright  license to incorporate this submission into
@@ -27,22 +29,22 @@ If the application has to provide a single image per eye, that would cover
 the entire field of view, at the highest density it would be extremely
 resource intensive, and in fact impossible for the most powerful desktop
 GPUs to render in real time.
-So instead Varjo introduced the `<<XR_VARJO_quad_views>>` extension enabling
-the application to provide two separate images for the two screen areas,
-resulting in a significant reduction in processing, for pixels that could
-not even been seen.
+So instead Varjo introduced the apiext:XR_VARJO_quad_views extension
+enabling the application to provide two separate images for the two screen
+areas, resulting in a significant reduction in processing, for pixels that
+could not even been seen.
 
 This extension goes a step further by enabling the application to only
 generate the density that can be seen by the user, which is another big
 reduction compared to the density that can be displayed, using dedicated eye
 tracking.
 
-This extension requires `<<XR_VARJO_quad_views>>` extension to be enabled.
+This extension requires apiext:XR_VARJO_quad_views extension to be enabled.
 
 An application using this extension to enable foveated rendering will take
 the following steps to prepare:
 
-1. Enable `<<XR_VARJO_quad_views>>` and `<<XR_VARJO_foveated_rendering>>`
+1. Enable apiext:XR_VARJO_quad_views and apiext:XR_VARJO_foveated_rendering
    extensions.
 2. Query system properties in order to determine if system supports foveated
    rendering.
@@ -63,7 +65,7 @@ rendering by chaining an slink:XrSystemFoveatedRenderingPropertiesVARJO
 structure to the slink:XrSystemProperties structure when calling
 flink:xrGetSystemProperties.
 
-include::{generated}/api/structs/XrSystemFoveatedRenderingPropertiesVARJO.txt[]
+include::{generated}/api/structs/XrSystemFoveatedRenderingPropertiesVARJO.adoc[]
 
 .Member Descriptions
 ****
@@ -80,7 +82,7 @@ when rendering gaze is available in the system.
 An application should: avoid using foveated rendering functionality when
 pname:supportsFoveatedRendering is ename:XR_FALSE.
 
-include::{generated}/validity/structs/XrSystemFoveatedRenderingPropertiesVARJO.txt[]
+include::{generated}/validity/structs/XrSystemFoveatedRenderingPropertiesVARJO.adoc[]
 --
 
 ==== Determine foveated texture sizes
@@ -94,14 +96,14 @@ chain slink:XrFoveatedViewConfigurationViewVARJO to
 slink:XrViewConfigurationView and set pname:foveatedRenderingActive to
 ename:XR_TRUE.
 Since an application using foveated rendering with this extension has to
-render 4 views, `<<XR_VARJO_quad_views>>` must: be enabled along with this
-extension when slink:XrInstance is created.
+render four views, apiext:XR_VARJO_quad_views must: be enabled along with
+this extension when slink:XrInstance is created.
 
 First and second views are non foveated views (covering whole field of view
 of HMD), third (left eye) and fourth (right eye) are foveated e.g. following
 gaze.
 
-include::{generated}/api/structs/XrFoveatedViewConfigurationViewVARJO.txt[]
+include::{generated}/api/structs/XrFoveatedViewConfigurationViewVARJO.adoc[]
 
 .Member Descriptions
 ****
@@ -113,7 +115,7 @@ include::{generated}/api/structs/XrFoveatedViewConfigurationViewVARJO.txt[]
   runtime should return foveated view configuration view.
 ****
 
-include::{generated}/validity/structs/XrFoveatedViewConfigurationViewVARJO.txt[]
+include::{generated}/validity/structs/XrFoveatedViewConfigurationViewVARJO.adoc[]
 
 For example:
 
@@ -147,8 +149,8 @@ if (foveatedRenderingProperties.supportsFoveatedRendering && viewConfigType == X
 
 .Note
 ====
-Applications using this extension are encouraged to create 2 sets of
-swapchains or one big enough set of swapchains and 2 sets of viewports.
+Applications using this extension are encouraged to create two sets of
+swapchains or one big enough set of swapchains and two sets of viewports.
 One set will be used when rendering gaze is not available and other one will
 be used when foveated rendering and rendering gaze is available.
 Using foveated textures may: not provide optimal visual quality when
@@ -211,7 +213,7 @@ foveated or non-foveated field of view.
 This is done by chaining slink:XrViewLocateFoveatedRenderingVARJO to
 slink:XrViewLocateInfo.
 
-include::{generated}/api/structs/XrViewLocateFoveatedRenderingVARJO.txt[]
+include::{generated}/api/structs/XrViewLocateFoveatedRenderingVARJO.adoc[]
 
 .Member Descriptions
 ****
@@ -226,7 +228,7 @@ include::{generated}/api/structs/XrViewLocateFoveatedRenderingVARJO.txt[]
 The runtime must: return foveated field of view when
 pname:foveatedRenderingActive is ename:XR_TRUE.
 
-include::{generated}/validity/structs/XrViewLocateFoveatedRenderingVARJO.txt[]
+include::{generated}/validity/structs/XrViewLocateFoveatedRenderingVARJO.adoc[]
 --
 
 [source,c++]
@@ -238,6 +240,7 @@ include::{generated}/validity/structs/XrViewLocateFoveatedRenderingVARJO.txt[]
 XrSession session; // previously populated
 XrSpace appSpace; // previously populated
 XrFrameState frameState; // previously populated by xrWaitFrame
+XrViewConfigurationType viewConfigType; // previously populated
 std::vector<XrView> views; // previously populated/resized to the correct size
 bool foveationActive; // previously populated, as in the previous example
 
@@ -245,6 +248,7 @@ XrViewState viewState{XR_TYPE_VIEW_STATE};
 uint32_t viewCapacityInput = static_cast<uint32_t>(views.size());
 uint32_t viewCountOutput;
 XrViewLocateInfo viewLocateInfo{XR_TYPE_VIEW_LOCATE_INFO};
+viewLocateInfo.viewConfigurationType = viewConfigType;
 viewLocateInfo.displayTime = frameState.predictedDisplayTime;
 viewLocateInfo.space = appSpace;
 XrViewLocateFoveatedRenderingVARJO viewLocateFoveatedRendering{XR_TYPE_VIEW_LOCATE_FOVEATED_RENDERING_VARJO};
@@ -276,5 +280,7 @@ elink:XrReferenceSpaceType enumeration is extended with:
 
 * Revision 1, 2020-12-16 (Sergiy Dubovik)
 ** Initial extension description
-* Revision 2, 2021-04-13 (Ryan Pavlik, Collabora, and Sergiy Dubovik)
+* Revision 2, 2021-04-13 (Rylie Pavlik, Collabora, Ltd., and Sergiy Dubovik)
 ** Update sample code so it is buildable
+* Revision 3, 2022-02-21 (Denny Rönngren)
+** Update sample code with a missing struct field initialization

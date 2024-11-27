@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2022, The Khronos Group Inc.
+// Copyright (c) 2017-2024, The Khronos Group Inc.
 //
 // SPDX-License-Identifier: CC-BY-4.0
 
@@ -40,9 +40,11 @@ application that include it.
 
 *Swapchain Image Resource State*
 
-When an application acquires a swapchain image by calling
-flink:xrAcquireSwapchainImage in a session create using
-slink:XrGraphicsBindingD3D12KHR, the OpenXR runtime must: guarantee that:
+If an application waits on a swapchain image by calling
+flink:xrWaitSwapchainImage in a session created using
+slink:XrGraphicsBindingD3D12KHR, and that call returns ename:XR_SUCCESS or
+ename:XR_SESSION_LOSS_PENDING, then the OpenXR runtime must: guarantee that
+the following conditions are true:
 
 * The color rendering target image has a resource state match with
   ename:D3D12_RESOURCE_STATE_RENDER_TARGET
@@ -52,7 +54,7 @@ slink:XrGraphicsBindingD3D12KHR, the OpenXR runtime must: guarantee that:
   can write to the image.
 
 When an application releases a swapchain image by calling
-flink:xrReleaseSwapchainImage, in a session create using
+flink:xrReleaseSwapchainImage, in a session created using
 slink:XrGraphicsBindingD3D12KHR, the OpenXR runtime must: interpret the
 image as:
 
@@ -103,7 +105,7 @@ The runtime may: set additional resource flags but must: not restrict usage.
 | _ignored_
 
 | ename:XR_SWAPCHAIN_USAGE_INPUT_ATTACHMENT_BIT_KHR
-  (Added by `<<XR_KHR_swapchain_usage_input_attachment_bit>>` and only available when that extension is enabled)
+  (Added by apiext:XR_KHR_swapchain_usage_input_attachment_bit and only available when that extension is enabled)
 | _ignored_
 
 |===
@@ -134,7 +136,7 @@ certain operating systems.
 --
 The slink:XrGraphicsBindingD3D12KHR structure is defined as:
 
-include::{generated}/api/structs/XrGraphicsBindingD3D12KHR.txt[]
+include::{generated}/api/structs/XrGraphicsBindingD3D12KHR.adoc[]
 
 .Member Descriptions
 ****
@@ -155,14 +157,14 @@ must: be created in accordance with the requirements retrieved through
 flink:xrGetD3D12GraphicsRequirementsKHR, otherwise flink:xrCreateSession
 must: return ename:XR_ERROR_GRAPHICS_DEVICE_INVALID.
 
-include::{generated}/validity/structs/XrGraphicsBindingD3D12KHR.txt[]
+include::{generated}/validity/structs/XrGraphicsBindingD3D12KHR.adoc[]
 --
 
 [open,refpage='XrSwapchainImageD3D12KHR',type='structs',desc='D3D12-specific swapchain image structure',xrefs='XrSwapchainImageBaseHeader']
 --
 The slink:XrSwapchainImageD3D12KHR structure is defined as:
 
-include::{generated}/api/structs/XrSwapchainImageD3D12KHR.txt[]
+include::{generated}/api/structs/XrSwapchainImageD3D12KHR.adoc[]
 
 .Member Descriptions
 ****
@@ -190,14 +192,14 @@ functionality.
 The OpenXR runtime must: interpret the swapchain images in a clip space of
 positive Y pointing up, near Z plane at 0, and far Z plane at 1.
 
-include::{generated}/validity/structs/XrSwapchainImageD3D12KHR.txt[]
+include::{generated}/validity/structs/XrSwapchainImageD3D12KHR.adoc[]
 --
 
 [open,refpage='XrGraphicsRequirementsD3D12KHR',type='structs',desc='D3D12 feature level and LUID requirements',xrefs='xrGetD3D12GraphicsRequirementsKHR']
 --
 The slink:XrGraphicsRequirementsD3D12KHR structure is defined as:
 
-include::{generated}/api/structs/XrGraphicsRequirementsD3D12KHR.txt[]
+include::{generated}/api/structs/XrGraphicsRequirementsD3D12KHR.adoc[]
 
 .Member Descriptions
 ****
@@ -213,7 +215,7 @@ include::{generated}/api/structs/XrGraphicsRequirementsD3D12KHR.txt[]
 slink:XrGraphicsRequirementsD3D12KHR is populated by
 flink:xrGetD3D12GraphicsRequirementsKHR.
 
-include::{generated}/validity/structs/XrGraphicsRequirementsD3D12KHR.txt[]
+include::{generated}/validity/structs/XrGraphicsRequirementsD3D12KHR.adoc[]
 --
 
 *New Functions*
@@ -230,7 +232,7 @@ so that they can use that graphics device to generate XR images.
 To retrieve the D3D12 feature level and graphics device for an instance and
 system, call:
 
-include::{generated}/api/protos/xrGetD3D12GraphicsRequirementsKHR.txt[]
+include::{generated}/api/protos/xrGetD3D12GraphicsRequirementsKHR.adoc[]
 
 .Parameter Descriptions
 ****
@@ -253,7 +255,7 @@ The LUID and feature level that flink:xrGetD3D12GraphicsRequirementsKHR
 returns must: be used to create the sname:ID3D12Device that the application
 passes to flink:xrCreateSession in the slink:XrGraphicsBindingD3D12KHR.
 
-include::{generated}/validity/protos/xrGetD3D12GraphicsRequirementsKHR.txt[]
+include::{generated}/validity/protos/xrGetD3D12GraphicsRequirementsKHR.adoc[]
 --
 
 *Issues*

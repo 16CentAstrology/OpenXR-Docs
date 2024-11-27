@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 #
-# Copyright 2013-2022 The Khronos Group Inc.
+# Copyright 2013-2024, The Khronos Group Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
 
@@ -17,6 +17,7 @@ sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 from cgenerator import CGeneratorOptions, COutputGenerator
 from creflectiongenerator import CReflectionOutputGenerator
 from docgenerator import DocGeneratorOptions, DocOutputGenerator
+from interfacedocgenerator import InterfaceDocGenerator
 from extensionmetadocgenerator import (ExtensionMetaDocGeneratorOptions,
                                        ExtensionMetaDocOutputGenerator)
 from generator import write
@@ -52,7 +53,7 @@ def makeREstring(strings, default=None, strings_are_regex=False):
     if strings or default is None:
         if not strings_are_regex:
             strings = (re.escape(s) for s in strings)
-        return '^(' + '|'.join(strings) + ')$'
+        return f"^({'|'.join(strings)})$"
     return default
 
 
@@ -105,16 +106,18 @@ def makeGenOpts(args):
     emitExtensionsPat    = makeREstring(emitExtensions, allExtensions)
     featuresPat          = makeREstring(features, allFeatures)
 
+    # REUSE-IgnoreStart
     # Copyright text prefixing all headers (list of strings).
     prefixStrings = [
         '/*',
-        '** Copyright 2017-2022 The Khronos Group Inc.',
+        '** Copyright 2017-2024, The Khronos Group Inc.',
         '**',
         # The following split string is to avoid confusing the "REUSE" tool
         '** SPDX-License-Identifier' + ': Apache-2.0 OR MIT',
         '*/',
         ''
     ]
+    # REUSE-IgnoreEnd
 
     # Text specific to OpenXR headers
     xrPrefixStrings = [
@@ -175,7 +178,7 @@ def makeGenOpts(args):
         standalonePrefixString = standalonePrefixOverride
 
     # "XR_EXT_some_extension" becomes "ext_some_extension.h"
-    standaloneExtensionFileName = standaloneExtension[len('XR_'):].lower() + '.h'
+    standaloneExtensionFileName = f"{standaloneExtension[len('XR_'):].lower()}.h"
 
     genOpts['standalone_header'] = [
           COutputGenerator,
@@ -187,6 +190,7 @@ def makeGenOpts(args):
             profile           = None,
             versions          = None,
             emitversions      = None,
+            emitComments      = True,
             defaultExtensions = 'openxr',
             addExtensions     = None,
             removeExtensions  = None,
@@ -227,6 +231,37 @@ def makeGenOpts(args):
           CGeneratorOptions(
             conventions       = conventions,
             filename          = 'openxr_platform.h',
+            directory         = directory,
+            apiname           = 'openxr',
+            profile           = None,
+            versions          = featuresPat,
+            emitversions      = featuresPat,
+            defaultExtensions = 'openxr',
+            addExtensions     = None,
+            removeExtensions  = None,
+            emitExtensions    = emitExtensionsPat,
+            prefixText        = prefixStrings + xrPrefixStrings + platformPrefixStrings,
+            genFuncPointers   = True,
+            protectFile       = protectFile,
+            protectFeature    = False,
+            protectProto      = '#ifndef',
+            protectProtoStr   = 'XR_NO_PROTOTYPES',
+            protectExtensionProto      = '#ifdef',
+            protectExtensionProtoStr   = 'XR_EXTENSION_PROTOTYPES',
+            apicall           = 'XRAPI_ATTR ',
+            apientry          = 'XRAPI_CALL ',
+            apientryp         = 'XRAPI_PTR *',
+            alignFuncParam    = 48,
+            genAliasMacro     = True,
+            genStructExtendsComment = True,
+            aliasMacro        = 'XR_MAY_ALIAS')
+    ]
+
+    genOpts['openxr_loader_negotiation.h'] = [
+          COutputGenerator,
+          CGeneratorOptions(
+            conventions       = conventions,
+            filename          = 'openxr_loader_negotiation.h',
             directory         = directory,
             apiname           = 'openxr',
             profile           = None,
@@ -296,11 +331,11 @@ def makeGenOpts(args):
         make_reflection_options('openxr_reflection_parent_structs.h'),
     ]
 
-    # OpenXR 1.0 - API include files for spec and ref pages
+    # OpenXR 1.1 - API include files for spec and ref pages
     # Overwrites include subdirectories in spec source tree
     # The generated include files do not include the calling convention
     # macros (apientry etc.), unlike the header files.
-    # Because the 1.0 core branch includes ref pages for extensions,
+    # Because the 1.1 main branch includes ref pages for extensions,
     # all the extension interfaces need to be generated, even though
     # none are used by the core spec itself.
     genOpts['apiinc'] = [
@@ -430,6 +465,25 @@ def makeGenOpts(args):
             addExtensions     = None,
             removeExtensions  = None,
             emitExtensions    = emitExtensionsPat)
+        ]
+    # Version and extension interface docs for version/extension appendices
+    # Includes all extensions by default.
+    genOpts['interfaceinc'] = [
+        InterfaceDocGenerator,
+        DocGeneratorOptions(
+            conventions       = conventions,
+            filename          = 'interfaceinc',
+            directory         = directory,
+            genpath           = None,
+            apiname           = 'openxr',
+            profile           = None,
+            versions          = featuresPat,
+            emitversions      = featuresPat,
+            defaultExtensions = None,
+            addExtensions     = addExtensionsPat,
+            removeExtensions  = removeExtensionsPat,
+            emitExtensions    = emitExtensionsPat,
+            reparentEnums     = False)
         ]
 
 def genTarget(args):
@@ -583,7 +637,7 @@ if __name__ == '__main__':
     else:
         startTimer(args.time)
         reg.apiGen()
-        endTimer(args.time, '* Time to generate ' + options.filename + ' =')
+        endTimer(args.time, f"* Time to generate {options.filename} =")
 
     if not args.quiet:
         logDiag('* Generated', options.filename)

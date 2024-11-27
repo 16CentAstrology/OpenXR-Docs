@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-# Copyright (c) 2019 Collabora, Ltd.
+# Copyright (c) 2019-2023 Collabora, Ltd.
 #
 # SPDX-License-Identifier: Apache-2.0
 #
-# Author(s):    Ryan Pavlik <ryan.pavlik@collabora.com>
+# Author(s):    Rylie Pavlik <rylie.pavlik@collabora.com>
 #
 # Purpose:      This script helps drive a per-section PDF diff.
 
@@ -13,7 +13,7 @@ from pathlib import Path
 from pprint import pprint
 
 import attr
-from PyPDF2 import PdfFileReader
+from PyPDF2 import PdfReader
 
 from pdf_diff import command_line as pdf_diff
 
@@ -95,7 +95,7 @@ def add_nested_title(bookmarks):
 
 def outline_to_bookmarks(reader, outline=None, level=1, bookmarks=None):
     if outline is None:
-        outline = reader.getOutlines()
+        outline = reader.outline
     if bookmarks is None:
         bookmarks = []
     for elt in outline:
@@ -103,14 +103,14 @@ def outline_to_bookmarks(reader, outline=None, level=1, bookmarks=None):
             outline_to_bookmarks(reader, outline=elt, level=level+1,
                                  bookmarks=bookmarks)
         else:
-            page_num = reader.getDestinationPageNumber(elt)
+            page_num = reader.get_destination_page_number(elt)
             bookmark = Bookmark(
                 title=elt.title,
                 level=level,
                 page_number=page_num + 1)
-            page = reader.getPage(page_num)
-            _, ul_y = page.bleedBox.upperLeft
-            # print(page.bleedBox.upperLeft, page.bleedBox.lowerRight)
+            page = reader.pages[page_num]
+            _, ul_y = page.bleedbox.upper_left
+            # print(page.bleedbox.upper_left, page.bleedbox.lower_right)
             # Coordinate system is flipped compared to pdf_diff...
             if elt.top:
                 bookmark.top = float(ul_y) - float(elt.top)
@@ -145,7 +145,7 @@ def compute_section_page_map(sections):
 class PdfSpec:
     def __init__(self, fn):
         self.fn = fn
-        self.reader = PdfFileReader(open(str(fn), 'rb'))
+        self.reader = PdfReader(open(str(fn), 'rb'))
         self.bookmark_data = outline_to_bookmarks(self.reader)
 
         self._page_pdfs = None
@@ -276,8 +276,7 @@ def get_section_range_pairs(orig_section, new_pdf):
     """Return MatchingSection for a section."""
     other_section = new_pdf.find_corresponding_section(orig_section)
     if not other_section:
-        print("Skipping section {} - no match in the other doc!".format(
-            orig_section.title))
+        print(f"Skipping section {orig_section.title} - no match in the other doc!")
         return None
     return MatchingSection(
         title=orig_section.title,
@@ -289,8 +288,7 @@ def get_section_page_pairs(orig_section, new_pdf):
     """Return (orig_page_num, new_page_num) pairs for each page in section."""
     other_section = new_pdf.find_corresponding_section(orig_section)
     if not other_section:
-        print("Skipping section {} - no match in the other doc!".format(
-            orig_section.title))
+        print(f"Skipping section {orig_section.title} - no match in the other doc!")
         return []
     return zip_longest(orig_section.page_numbers, other_section.page_numbers)
 
@@ -382,8 +380,8 @@ def fill_pair_gaps(pairs):
     new_pages = [new_page for _, new_page in pairs
                  if new_page is not None]
 
-    assert(orig_pages == sorted(orig_pages))
-    assert(new_pages == sorted(new_pages))
+    assert orig_pages == sorted(orig_pages)
+    assert new_pages == sorted(new_pages)
 
     fixed_pairs = []
 
@@ -452,9 +450,9 @@ class GranularPdfDiff:
 
 if __name__ == "__main__":
     SPECDIR = Path(__file__).resolve().parent.parent
-    assert(SPECDIR.name == "specification")
+    assert SPECDIR.name == "specification"
     ORIG = SPECDIR / 'compare-base' / 'openxr.pdf'
-    NEW = SPECDIR / 'generated' / 'out' / '1.0' / 'openxr.pdf'
+    NEW = SPECDIR / 'generated' / 'out' / '1.1' / 'openxr.pdf'
     DIFFDIR = SPECDIR / 'diffs'
     DIFFDIR.mkdir(exist_ok=True)
 
@@ -474,7 +472,7 @@ if __name__ == "__main__":
         img = pdf_diff.render_changes(matching.changes,
                                       ('strike', 'underline'),
                                       900)
-        fn = "Diff part {:02d} - {}.diff.png".format(i, matching.title)
+        fn = f"Diff part {i:02d} - {matching.title}.diff.png"
         full_path = DIFFDIR / fn
 
         print('Writing', full_path.relative_to(SPECDIR))

@@ -44,7 +44,7 @@ use cases are resolved in a more portable way.
 
 The slink:XrSystemHeadsetIdPropertiesMETA structure is defined as:
 
-include::{generated}/api/structs/XrSystemHeadsetIdPropertiesMETA.txt[]
+include::{generated}/api/structs/XrSystemHeadsetIdPropertiesMETA.adoc[]
 
 .Member Descriptions
 ****
@@ -59,8 +59,8 @@ An application can: get a corresponding headset UUID of the headset model by
 chaining an slink:XrSystemHeadsetIdPropertiesMETA structure to the
 slink:XrSystemProperties when calling flink:xrGetSystemProperties.
 
-The UUID returned in the slink:XrSystemHeadsetIdPropertiesMETA struct is an
-opaque UUID that identifies a runtime / headset model combo.
+The UUID returned in the slink:XrSystemHeadsetIdPropertiesMETA structure is
+an opaque UUID that identifies a runtime / headset model combo.
 
 The runtime should: always return the same UUID for a given headset model
 for the entire lifetime of that product.
@@ -68,17 +68,16 @@ for the entire lifetime of that product.
 The runtime may: report a different UUID to some applications for
 compatibility purposes.
 
-This is in contrast to the pname:systemName field in
-slink:XrSystemProperties which is not required to be consistent across
-product renames.
+This is in contrast to the slink:XrSystemProperties::pname:systemName field
+which is not required to be consistent across product renames.
 
 This is intended to be a temporary feature that will be deprecated along
 with its extension as soon as motivating use cases are resolved in a better
 way.
-See the disclaimer at the start of the `<<XR_META_headset_id>>` extension
+See the disclaimer at the start of the apiext:XR_META_headset_id extension
 documentation for more details.
 
-include::{generated}/validity/structs/XrSystemHeadsetIdPropertiesMETA.txt[]
+include::{generated}/validity/structs/XrSystemHeadsetIdPropertiesMETA.adoc[]
 --
 
 *New Object Types*
@@ -107,3 +106,5 @@ elink:XrStructureType enumeration is extended with:
 
 * Revision 1, 2022-08-11 (Wenlin Mao)
 ** Initial extension description
+* Revision 2, 2023-01-30 (Wenlin Mao)
+** Drop requirement for `XR_EXT_uuid` being enabled

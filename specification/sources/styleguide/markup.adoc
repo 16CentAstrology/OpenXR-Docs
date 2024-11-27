@@ -1,4 +1,4 @@
-// Copyright (c) 2015-2022, The Khronos Group Inc.
+// Copyright (c) 2015-2024, The Khronos Group Inc.
 //
 // SPDX-License-Identifier: CC-BY-4.0
 
@@ -282,20 +282,20 @@ anchors corresponding to API names, such as flink:xrCreateCommandPool.
 ==== Extensions
 
 Extensions, like commands and structures, have an auto-generated anchor.
-The standardized way of referring to an extension by name is to wrap it in
-both backticks and angle-brackets: for example, `<<XR_KHR_vulkan_enable>>`.
+The standardized way of referring to an extension by name is to prepend
+`apiext{cl}`: for example, apiext:XR_KHR_vulkan_enable.
 When a link would be inappropriate (e.g. in the "`Name`" portion of the
-extension's spec itself), surrounding it with backticks only is acceptable:
+extension's spec itself), surrounding it with backticks is acceptable:
 `XR_KHR_vulkan_enable`.
 
 [source,asciidoc]
 .Example Markup
 ----
 Extensions, like commands and structures, have an auto-generated anchor.
-The standardized way of referring to an extension by name is to wrap it
-in both backticks and angle-brackets: for example, `<<XR_KHR_vulkan_enable>>`.
+The standardized way of referring to an extension by name is to prepend
+`apiext{cl}`: for example, apiext:XR_KHR_vulkan_enable.
 When a link would be inappropriate (e.g. in the "`Name`" portion of the
-extension's spec itself), surrounding it with backticks only is acceptable:
+extension's spec itself), surrounding it with backticks is acceptable:
 `XR_KHR_vulkan_enable`.
 ----
 
@@ -365,8 +365,8 @@ In the <<fig-anchorname,Figure caption>> diagram, the diagram represents
 
 This section discusses Asciidoc macros used in the document.
 In addition to the macros defined by asciidoc itself, additional macros are
-defined by the <<openxr-spec,OpenXR API Specification>> and Reference Page
-configuration files.
+defined by the link:{uri-openxr-ratified-spec}[OpenXR API Specification] and
+Reference Page configuration files.
 
 
 [[markup-macros-api]]
@@ -440,13 +440,13 @@ table:
                      necessary>>.
 | tlink{cl}        | Generates a cross-reference or link to the definition
                      of the OpenXR type in the macro argument. Example:
-                     tlink{cl}PFN_xrCreateInstance ->
-                     tlink:PFN_xrCreateInstance. This is only used for
+                     tlink{cl}PFN_xrVoidFunction ->
+                     tlink:PFN_xrVoidFunction. This is only used for
                      function pointer types at present.
 | tname{cl}        | Formats the macro argument like tlink{cl}. Does not
                      generate a cross-reference. Example:
-                     tname{cl}PFN_xrCreateInstance ->
-                     tname:PFN_xrCreateInstance.
+                     tname{cl}PFN_xrVoidFunction ->
+                     tname:PFN_xrVoidFunction.
 
                      Only use this macro <<markup-macros-api-name, when
                      necessary>>.
@@ -454,17 +454,18 @@ table:
                      the OpenXR C macro in the macro argument. Example:
                      dlink{cl}XR_NULL_HANDLE -> dlink:XR_NULL_HANDLE. There are
                      only a few macros in the OpenXR API, described in the
-                     "`e`" appendix of the <<openxr-spec,OpenXR
-                     API Specification>>
+                     "`e`" appendix of the link:{uri-openxr-ratified-spec}[OpenXR
+                     API Specification]
 | dname{cl}        | Formats the macro argument like dlink{cl}. Does not
                      generate a cross-reference.
 
                      Only use this macro <<markup-macros-api-name, when
                      necessary>>.
-| basetype{cl}     | Formats the macro argument like a basic scalar type
-                     or API handle name. Not validated. Examples:
-                     basetype{cl}XrBool32 -> basetype:XrBool32,
-                     basetype{cl}XrSize -> basetype:XrSize.
+| basetype{cl}     | Formats the macro argument like a basic scalar type.
+                     Example:
+                     basetype{cl}XrBool32 -> basetype:XrBool32
+| apiext{cl}       | Generates a cross-reference or link to the target as an
+                     extension.
 | code{cl}         | Formats the macro argument as a code sample. Primarily
                      used for SPIR-V keywords and builtin C types. Examples:
                      code{cl}uint32_t -> code:uint32_t,
@@ -542,7 +543,7 @@ code:NULL
 
 Glossary terms are currently marked up using underscore markup where they
 are defined in the documents, as well as being added to the formal Glossary
-appendix in the <<openxr-spec,OpenXR API Specification>>.
+appendix in the link:{uri-openxr-ratified-spec}[OpenXR API Specification].
 However, we will probably change to using custom macros soon, to enable
 linkage between the glossary and definitions in the spec body.
 
@@ -556,14 +557,14 @@ _Glossary terms_
 === Normative Terminology
 
 Normative terminology is precisely defined in section 1.6 of the
-<<openxr-spec,OpenXR API Specification>>, and is used to visually tag terms
-which express mandatory and optional behavior of OpenXR implementations, and
-of applications using OpenXR.
+link:{uri-openxr-ratified-spec}[OpenXR API Specification], and is used to
+visually tag terms which express mandatory and optional behavior of OpenXR
+implementations, and of applications using OpenXR.
 
-Whenever one of these terms appears in the <<openxr-spec,OpenXR API
-Specification>>, it must be tagged using the macros, to indicate that its
-use has been carefully considered and is consistent with the definitions in
-section 1.6.
+Whenever one of these terms appears in the
+link:{uri-openxr-ratified-spec}[OpenXR API Specification], it must be tagged
+using the macros, to indicate that its use has been carefully considered and
+is consistent with the definitions in section 1.6.
 This is extremely important for determining IP that is in and out of Scope
 during Ratification reviews.
 The normative terminology macros are defined in the following table:
@@ -613,7 +614,7 @@ not required:
 
 Implementations are not mandated to support functionality which is not
 required, but if they do, they must behave as described by the
-<<openxr-spec,OpenXR API Specification>>.
+link:{uri-openxr-ratified-spec}[OpenXR API Specification].
 The term _functionality_ includes API features, extensions, and layers.
 
 [[markup-informative]]
@@ -734,24 +735,21 @@ There are a variety of common terms that have several equivalent word
 choices.
 Always use the words in the first column instead of the alternate terms.
 This list may not be comprehensive; when in doubt, be guided by the existing
-<<openxr-spec,OpenXR API Specification>>.
+link:{uri-openxr-ratified-spec}[OpenXR API Specification].
 
 .Word Choices
 [width="100%",options="header"]
 |====
 | Use This      | Instead Of     | Comments
-| allocate      | create
-                | When describing objects or memory resulting from
-                  ftext:vkAllocate* commands.
 | application   | client         |
 | bitmask       | bit field
-                | Technically correct. Vulkan bitmasks are just integers and
+                | Technically correct. OpenXR bitmasks are just integers and
                   are not logically addressable at the bit level.
 | command       | function
                 | Except when talking about function pointers returned by
-                  ftext:vkGet*ProcAddr commands.
+                  ftext:xrGet*ProcAddr commands.
 | create        | allocate
-                | When describing objects resulting from ftext:vkCreate*
+                | When describing objects resulting from ftext:xrCreate*
                   commands.
 | depth/stencil | packed (interleaved, combined, _other prefix_)
                   depth/stencil, depth-stencil, DepthStencil, etc.
@@ -775,8 +773,8 @@ This list may not be comprehensive; when in doubt, be guided by the existing
                 | the value of pname:parameter is
                 | In rare cases, _the value of_ is appropriate. See the
                   existing specification language for examples.
-| begins / begun      | starts / started | For ftext:vkBegin* - also see "`finish`"
-| finishes / finished | ends / ended     | For ftext:vkEnd* - also see "`begins`"
+| begins / begun      | starts / started | For ftext:xrBegin* - also see "`finish`"
+| finishes / finished | ends / ended     | For ftext:xrEnd* - also see "`begins`"
 | used          | referenced     | When describing attachments specified in a
                                    subpass description.
 | statically used | referenced   | When describing resources or push constants

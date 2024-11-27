@@ -1,9 +1,9 @@
-// Copyright (c) 2014-2022, The Khronos Group Inc.
+// Copyright (c) 2014-2024, The Khronos Group Inc.
 //
 // SPDX-License-Identifier: CC-BY-4.0
 
 = OpenXR™ Documentation and Extensions: Procedures and Conventions
-Ryan Pavlik, Kaye Mason, Jon Leech, Tobias Hector
+Rylie Pavlik, Kaye Mason, Jon Leech, Tobias Hector
 :data-uri:
 :icons: font
 :toc2:
@@ -26,6 +26,8 @@ include::{config}/copyright-ccby.adoc[]
 
 <<<<
 
+:uri-schema-vulkan: https://registry.khronos.org/vulkan/specs/1.3/registry.html
+
 [[introduction]]
 = Introduction
 
@@ -43,21 +45,25 @@ It should be noted that the _OpenXR Documentation_ has been branched from
 the Vulkan documentation.
 A deliberate decision was made to keep the API standards similar, although
 this may diverge over time as changes are made to either standard.
-The OpenXR version of this style guide is also influenced by _Etna_, the
-proposal that was adopted as a starting point for the OpenXR specification.
+The OpenXR version of this style guide is also influenced by the proposal
+that was adopted as a starting point for the OpenXR specification.
 
 The primary purpose is to achieve consistency across the API, as well as
 across all of our source and output documents.
 Consistency makes it easier for developers, editors, reviewers, and users of
 our documentation to understand and modify it.
 
-This document has been ratified by the OpenXR working group.
-
-This means that unless explicitly stated otherwise, the procedures and
-conventions must be followed when making changes or additions to the OpenXR
-specification.
+Unless explicitly stated otherwise, the procedures and conventions must be
+followed when making changes or additions to the OpenXR specification.
 If you have a strong desire to modify the procedures and conventions, such
 changes must be made through the normal OpenXR Working group process.
+
+Note that some conventions in naming and API design that would be relevant
+to a user of the standard are discussed in the "Fundamentals" and "Appendix"
+chapters of the specification itself.
+If a contradiction is found, the specification itself takes precedence, and
+normal working group procedures should be followed to correct this style
+guide.
 
 [[introduction-terminology]]
 == Terminology
@@ -68,21 +74,23 @@ The key words *must*, *required*, *should*, *recommend*, *may*, and
 [[introduction-structure]]
 == Document Structure
 
-The style guide is broken into four sections:
+The style guide is broken into five sections:
 
-* <<naming,API Naming Conventions>> - the required rules for choosing names
-  of OpenXR identifiers of all types.
+* <<naming>> - the required rules for choosing names of OpenXR identifiers
+  of all types.
 * <<extensions,Extensions and Layers>> - the required procedures for
   creating formal OpenXR extensions and layers.
-* <<markup,Markup Style>> - the required and recommended markup style for
-  writing asciidoc and XML source that follows consistent formatting and
-  layout guidelines, tags special terms and phrases for proper processing by
-  the spec generation tools, etc.
-* <<writing,Writing Style>> - the required and recommended writing style for
-  overall and fine-grained structure and conventions, normative language
-  use, API naming conventions, common words and phrases to use and to avoid,
-  linking and cross-referencing, etc.
-
+* <<markup>> - the required and recommended markup style for writing
+  asciidoc and XML source that follows consistent formatting and layout
+  guidelines, tags special terms and phrases for proper processing by the
+  spec generation tools, etc.
+* <<writing>> - the required and recommended writing style for overall and
+  fine-grained structure and conventions, normative language use, API naming
+  conventions, common words and phrases to use and to avoid, linking and
+  cross-referencing, etc.
+* <<schema>> - a brief description of the XML registry format as well as the
+  declarative schemas and tools available to assist in verification of
+  changes.
 
 [[introduction-asciidoc]]
 == Asciidoc Markup
@@ -131,10 +139,10 @@ include::markup.adoc[]
 
 include::writing.adoc[]
 
+include::schema.adoc[]
+
 = Still To Be Done
 
-* Image formats.
-* Include definitions.
 * Something about verb tenses in the writing chapter.
 * Something about the use of abbreviations and acronyms.
 
@@ -149,3 +157,24 @@ include::writing.adoc[]
 * 2017-07-07 - Changing more things to OpenXR examples.
   Adding OpenXR issues in most TODOs.
 * 2020-03-12 - Major revisions in preparation for release.
+* Other small changes aligning document with working group practice.
+* 2021-05-10 - Reference the extension process document on extending
+  bitmasks, remove obsolete references to old Vulkan development models.
+* 2022-08-26 - Update to reflect Vulkan script sync and moving all generated
+  files into a single directory whose path is accessed using the AsciiDoc
+  attribute `\{generated\}`
+* 2023-03-17 - Clarify that USB vendor ID, not PCI vendor ID, should be used
+  in OpenXR.
+* 2023-06-15 - Require vendor suffix in interaction profile paths introduced
+  by extensions.
+* 2023-07-13 - Document standing recommendation to discourage callbacks in
+  OpenXR API design, other small changes to align more closely with existing
+  working group practice.
+* 2023-08-02 - Document the XML schema and how it differs from the Vulkan
+  equivalent.
+* 2024-04-08 - Document the intentional breaking change in the XML schema
+  released with the OpenXR 1.1 specification, bringing our schema back into
+  synchronization with the Vulkan specification by removing an outdated
+  convention no longer used by Vulkan.
+* 2024-09-27 - Correct some errors in the text schema related to interaction
+  profiles, and make other improvements in the schema chapter.

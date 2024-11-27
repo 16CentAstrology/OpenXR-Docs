@@ -1,10 +1,11 @@
 #!/usr/bin/python3 -i
 #
+# Copyright 2019-2024, The Khronos Group Inc.
 # Copyright (c) 2019 Collabora, Ltd.
 #
 # SPDX-License-Identifier: Apache-2.0
 #
-# Author(s):    Ryan Pavlik <ryan.pavlik@collabora.com>
+# Author(s):    Rylie Pavlik <rylie.pavlik@collabora.com>
 """RecursiveMemoize serves as a base class for a function modeled
 as a dictionary computed on-the-fly."""
 
@@ -48,7 +49,7 @@ class RecursiveMemoize:
             # fail if cycles not permitted
             if ret is None and not self.permit_cycles:
                 raise RuntimeError("Cycle detected when computing function: " +
-                                   "f({}) depends on itself".format(key))
+                                   f"f({key}) depends on itself")
             # return the memoized value
             # (which might be None if we're in a cycle that's permitted)
             return ret
@@ -83,7 +84,7 @@ def longest_common_prefix(strings):
     'abc'
 
     """
-    assert(len(strings) > 1)
+    assert len(strings) > 1
     a = min(strings)
     b = max(strings)
     prefix = []
@@ -127,7 +128,7 @@ def longest_common_token_prefix(strings, delimiter='_'):
     ''
 
     """
-    assert(len(strings) > 1)
+    assert len(strings) > 1
     a = min(strings).split(delimiter)
     b = max(strings).split(delimiter)
     prefix_tokens = []

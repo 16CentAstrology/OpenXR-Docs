@@ -1,5 +1,5 @@
 /*
-** Copyright (c) 2017-2022, The Khronos Group Inc.
+** Copyright (c) 2017-2024, The Khronos Group Inc.
 **
 ** SPDX-License-Identifier: Apache-2.0
 */
@@ -25,3 +25,11 @@
 extern volatile bool quit;
 
 #define CHK_XR(r) if(XR_FAILED(r)) { /*handle XrResult errors*/ }
+
+#ifdef __cplusplus
+inline void do_something(const XrPosef& pose) {}
+inline void do_something(const XrVector3f& vector3) {}
+inline void do_something(const XrQuaternionf& quaternion) {}
+#else
+#define do_something(X)
+#endif

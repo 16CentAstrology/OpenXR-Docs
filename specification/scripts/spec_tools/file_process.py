@@ -1,10 +1,11 @@
 #!/usr/bin/python3
 #
+# Copyright 2018-2024, The Khronos Group Inc.
 # Copyright (c) 2018-2019 Collabora, Ltd.
 #
 # SPDX-License-Identifier: Apache-2.0
 #
-# Author(s):    Ryan Pavlik <ryan.pavlik@collabora.com>
+# Author(s):    Rylie Pavlik <rylie.pavlik@collabora.com>
 "Utilities for processing files."
 
 from pathlib import Path
@@ -50,6 +51,7 @@ class LinewiseFileProcessor:
     @property
     def trailing_whitespace(self):
         """The trailing whitespace of the current line that gets removed when accessing rstrippedLine"""
+        assert self.line_rstripped is not None
         non_whitespace_length = len(self.line_rstripped)
         return self.line[non_whitespace_length:]
 

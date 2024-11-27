@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2022, The Khronos Group Inc.
+// Copyright (c) 2017-2024, The Khronos Group Inc.
 //
 // SPDX-License-Identifier: CC-BY-4.0
 
@@ -48,7 +48,7 @@ elink:XrStructureType enumeration is extended with:
 --
 The slink:XrCompositionLayerCubeKHR structure is defined as:
 
-include::{generated}/api/structs/XrCompositionLayerCubeKHR.txt[]
+include::{generated}/api/structs/XrCompositionLayerCubeKHR.adoc[]
 
 .Member Descriptions
 ****
@@ -59,9 +59,9 @@ include::{generated}/api/structs/XrCompositionLayerCubeKHR.txt[]
 * pname:layerFlags is any flags to apply to this layer.
 * pname:space is the slink:XrSpace in which the pname:orientation of the
   cube layer is evaluated over time.
-* pname:eye is the eye represented by this layer.
+* pname:eyeVisibility is the eye represented by this layer.
 * pname:swapchain is the swapchain, which must: have been created with a
-  pname:faceCount of 6.
+  slink:XrSwapchainCreateInfo::pname:faceCount of 6.
 * pname:imageArrayIndex is the image array index, with 0 meaning the first
   or only array element.
 * pname:orientation is the orientation of the environment map in the
@@ -73,7 +73,7 @@ cube map when calling flink:xrEndFrame.
 slink:XrCompositionLayerCubeKHR is an alias type for the base struct
 slink:XrCompositionLayerBaseHeader used in slink:XrFrameEndInfo.
 
-include::{generated}/validity/structs/XrCompositionLayerCubeKHR.txt[]
+include::{generated}/validity/structs/XrCompositionLayerCubeKHR.adoc[]
 --
 
 *New Functions*

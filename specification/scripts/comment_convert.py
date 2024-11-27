@@ -4,7 +4,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 #
-# Author(s):    Ryan Pavlik <ryan.pavlik@collabora.com>
+# Author(s):    Rylie Pavlik <rylie.pavlik@collabora.com>
 #
 # Purpose:      This script converts leading comments on some Python
 #               classes and functions into docstrings.
@@ -74,7 +74,7 @@ class CommentConverter(LinewiseFileProcessor):
             self.output_line(line)
         self.trailing_empty_lines = []
 
-        indent = indent + '    '
+        indent = f"{indent}    "
 
         def extract(line):
             match = COMMENT_RE.match(line)

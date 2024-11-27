@@ -1,11 +1,11 @@
-// Copyright (c) 2021 HTC
+// Copyright (c) 2021-23 HTC
 //
 // SPDX-License-Identifier: CC-BY-4.0
 
 include::{generated}/meta/XR_HTCX_vive_tracker_interaction.adoc[]
 
 *Last Modified Date*::
-    2021-09-23
+    2023-07-14
 *IP Status*::
     No known IP claims.
 *Contributors*::
@@ -26,7 +26,7 @@ interact with.
 In order to enable the functionality of this extension, you must: pass the
 name of the extension into flink:xrCreateInstance via the
 slink:XrInstanceCreateInfo pname:enabledExtensionNames parameter as
-indicated in the <<extensions>> section.
+indicated in the <<fundamentals-extensions>> section.
 
 This extension allows:
 
@@ -64,13 +64,17 @@ The paths of a VIVE tracker contains two paths below:
 ** `right_elbow`
 ** `left_knee`
 ** `right_knee`
+** `left_wrist` (rev: 3)
+** `right_wrist` (rev: 3)
+** `left_ankle` (rev: 3)
+** `right_ankle` (rev: 3)
 ** `waist`
 ** `chest`
 ** `camera`
 ** `keyboard`
 * Either the persistent path or the role path can be be passed as a
   subaction path to indicate a specific tracker.
-  For example, slink:XrActionCreateInfo::pname:subactionPath into function
+  For example, slink:XrActionCreateInfo::pname:subactionPaths into function
   flink:xrCreateAction or slink:XrActionSpaceCreateInfo::pname:subactionPath
   into function flink:xrCreateActionSpace.
   Please see Example 1 below.
@@ -132,7 +136,7 @@ elink:XrStructureType enumeration is extended with:
 
 The slink:XrViveTrackerPathsHTCX structure is defined as:
 
-include::{generated}/api/structs/XrViveTrackerPathsHTCX.txt[]
+include::{generated}/api/structs/XrViveTrackerPathsHTCX.adoc[]
 
 .Member Descriptions
 ****
@@ -149,7 +153,7 @@ include::{generated}/api/structs/XrViveTrackerPathsHTCX.txt[]
 The slink:XrViveTrackerPathsHTCX structure contains two paths of VIVE
 tracker.
 
-include::{generated}/validity/structs/XrViveTrackerPathsHTCX.txt[]
+include::{generated}/validity/structs/XrViveTrackerPathsHTCX.adoc[]
 --
 
 [open,refpage='XrEventDataViveTrackerConnectedHTCX',type='structs',desc='Event representing a new VIVE tracker connected',xrefs='xrPollEvent']
@@ -157,7 +161,7 @@ include::{generated}/validity/structs/XrViveTrackerPathsHTCX.txt[]
 
 The slink:XrEventDataViveTrackerConnectedHTCX structure is defined as:
 
-include::{generated}/api/structs/XrEventDataViveTrackerConnectedHTCX.txt[]
+include::{generated}/api/structs/XrEventDataViveTrackerConnectedHTCX.adoc[]
 
 .Member Descriptions
 ****
@@ -172,7 +176,7 @@ Receiving the slink:XrEventDataViveTrackerConnectedHTCX event structure
 indicates that a new VIVE tracker was connected or its role changed.
 It is received via flink:xrPollEvent.
 
-include::{generated}/validity/structs/XrEventDataViveTrackerConnectedHTCX.txt[]
+include::{generated}/validity/structs/XrEventDataViveTrackerConnectedHTCX.adoc[]
 --
 
 
@@ -183,29 +187,27 @@ include::{generated}/validity/structs/XrEventDataViveTrackerConnectedHTCX.txt[]
 
 The flink:xrEnumerateViveTrackerPathsHTCX function is defined as:
 
-include::{generated}/api/protos/xrEnumerateViveTrackerPathsHTCX.txt[]
+include::{generated}/api/protos/xrEnumerateViveTrackerPathsHTCX.adoc[]
 
 .Parameter Descriptions
 ****
 * pname:instance is an instance previously created.
-* pname:pathsCapacityInput is the capacity of the pname:viveTrackerPaths, or
-  `0` to retrieve the required capacity.
-* pname:pathsCountOutput is a pointer to the count of
-  slink:XrViveTrackerPathsHTCX pname:viveTrackerPaths written, or a pointer
-  to the required capacity in the case that pname:pathsCapacityInput is
+* pname:pathCapacityInput is the capacity of the pname:paths, or `0` to
+  retrieve the required capacity.
+* pname:pathCountOutput is a pointer to the count of
+  slink:XrViveTrackerPathsHTCX pname:paths written, or a pointer to the
+  required capacity in the case that pname:pathCapacityInput is
   insufficient.
-* pname:viveTrackerPaths is a pointer to an array of
-  slink:XrViveTrackerPathsHTCX VIVE tracker paths, but can: be code:NULL if
-  pname:pathsCapacityInput is `0`.
-* See <<buffer-size-parameters, Buffer Size Parameters>> chapter for a
-  detailed description of retrieving the required pname:viveTrackerPaths
-  size.
+* pname:paths is a pointer to an array of slink:XrViveTrackerPathsHTCX VIVE
+  tracker paths, but can: be code:NULL if pname:pathCapacityInput is `0`.
+* See the <<fundamentals-buffer-size-parameters>> section for a detailed
+  description of retrieving the required pname:paths size.
 ****
 
 flink:xrEnumerateViveTrackerPathsHTCX enumerates all connected VIVE trackers
 to retrieve their paths under current instance.
 
-include::{generated}/validity/protos/xrEnumerateViveTrackerPathsHTCX.txt[]
+include::{generated}/validity/protos/xrEnumerateViveTrackerPathsHTCX.adoc[]
 --
 
 *Examples*
@@ -343,6 +345,8 @@ switch ( xrEvent.type )
 *Version History*
 
 * Revision 1, 2021-09-23 (Kyle Chen)
-** Initial extension description
-* Revision 2, 2022-09-08 (Ryan Pavlik, Collabora, Ltd.)
+** Initial extension description.
+* Revision 2, 2022-09-08 (Rylie Pavlik, Collabora, Ltd.)
 ** Mark event type as returned-only, updating the implicit valid usage.
+* Revision 3, 2022-05-19 (Rune Berg, Valve Corporation)
+** Add new wrist and ankle roles to match additional openvr roles.

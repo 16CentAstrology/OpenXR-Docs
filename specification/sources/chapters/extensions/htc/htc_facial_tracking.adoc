@@ -5,12 +5,13 @@
 include::{generated}/meta/XR_HTC_facial_tracking.adoc[]
 
 *Last Modified Date*::
-    2021-12-16
+    2024-07-26
 *IP Status*::
     No known IP claims.
 *Contributors*::
     Kyle Chen, HTC +
-    Chris Kuo
+    Chris Kuo, HTC +
+    Andy Chen, HTC
 
 
 *Overview*
@@ -25,7 +26,7 @@ expressions.
 
 slink:XrSystemFacialTrackingPropertiesHTC is defined as:
 
-include::{generated}/api/structs/XrSystemFacialTrackingPropertiesHTC.txt[]
+include::{generated}/api/structs/XrSystemFacialTrackingPropertiesHTC.adoc[]
 
 .Member Descriptions
 ****
@@ -44,7 +45,7 @@ facial tracking by extending the slink:XrSystemProperties with
 slink:XrSystemFacialTrackingPropertiesHTC structure when calling
 flink:xrGetSystemProperties.
 
-include::{generated}/validity/structs/XrSystemFacialTrackingPropertiesHTC.txt[]
+include::{generated}/validity/structs/XrSystemFacialTrackingPropertiesHTC.adoc[]
 
 If a runtime returns ename:XR_FALSE for pname:supportEyeFacialTracking, the
 runtime must: return ename:XR_ERROR_FEATURE_UNSUPPORTED from
@@ -66,7 +67,7 @@ elink:XrFacialTrackingTypeHTC in slink:XrFacialTrackerCreateInfoHTC.
 The slink:XrFacialTrackerHTC handle represents the resources for an facial
 tracker of the specific facial tracking type.
 
-include::{generated}/api/handles/XrFacialTrackerHTC.txt[]
+include::{generated}/api/handles/XrFacialTrackerHTC.adoc[]
 
 An application creates separate slink:XrFacialTrackerHTC handles for eye
 tracker or lip tracker.
@@ -78,7 +79,7 @@ flink:xrGetFacialExpressionsHTC function.
 --
 The flink:xrCreateFacialTrackerHTC function is defined as
 
-include::{generated}/api/protos/xrCreateFacialTrackerHTC.txt[]
+include::{generated}/api/protos/xrCreateFacialTrackerHTC.adoc[]
 
 .Parameter Descriptions
 ****
@@ -96,12 +97,12 @@ If the system does not support eye tracking or lip tracking, runtime must:
 return ename:XR_ERROR_FEATURE_UNSUPPORTED from
 flink:xrCreateFacialTrackerHTC according to the corresponding case.
 In this case, the runtime must: return ename:XR_FALSE for
-pname:supportEyeFacialTracking or pname:supportLipFacialTracking in
-slink:XrSystemFacialTrackingPropertiesHTC when the function
-flink:xrGetSystemProperties is called, so that the application may: avoid
-creating a facial tracker.
+slink:XrSystemFacialTrackingPropertiesHTC::pname:supportEyeFacialTracking or
+slink:XrSystemFacialTrackingPropertiesHTC::pname:supportLipFacialTracking
+when the function flink:xrGetSystemProperties is called, so that the
+application may: avoid creating a facial tracker.
 
-include::{generated}/validity/protos/xrCreateFacialTrackerHTC.txt[]
+include::{generated}/validity/protos/xrCreateFacialTrackerHTC.adoc[]
 
 --
 
@@ -109,7 +110,7 @@ include::{generated}/validity/protos/xrCreateFacialTrackerHTC.txt[]
 --
 The slink:XrFacialTrackerCreateInfoHTC structure is defined as:
 
-include::{generated}/api/structs/XrFacialTrackerCreateInfoHTC.txt[]
+include::{generated}/api/structs/XrFacialTrackerCreateInfoHTC.adoc[]
 
 .Member Descriptions
 ****
@@ -124,7 +125,7 @@ include::{generated}/api/structs/XrFacialTrackerCreateInfoHTC.txt[]
 The slink:XrFacialTrackerCreateInfoHTC structure describes the information
 to create an slink:XrFacialTrackerHTC handle.
 
-include::{generated}/validity/structs/XrFacialTrackerCreateInfoHTC.txt[]
+include::{generated}/validity/structs/XrFacialTrackerCreateInfoHTC.adoc[]
 --
 
 [open,refpage='XrFacialTrackingTypeHTC',type='enums',desc='Describes the type of facial tracking.',xrefs='']
@@ -132,16 +133,16 @@ include::{generated}/validity/structs/XrFacialTrackerCreateInfoHTC.txt[]
 The elink:XrFacialTrackingTypeHTC describes which type of tracking the
 slink:XrFacialTrackerHTC is using.
 
-include::{generated}/api/enums/XrFacialTrackingTypeHTC.txt[]
+include::{generated}/api/enums/XrFacialTrackingTypeHTC.adoc[]
 
-include::{generated}/api/enums/XrFacialTrackingTypeHTC.comments-box.txt[]
+include::{generated}/api/enums/XrFacialTrackingTypeHTC.comments-box.adoc[]
 --
 
 [open,refpage='xrDestroyFacialTrackerHTC',type='protos',desc='Destroy a facial tracker handle',xrefs='']
 --
 The flink:xrDestroyFacialTrackerHTC function is defined as:
 
-include::{generated}/api/protos/xrDestroyFacialTrackerHTC.txt[]
+include::{generated}/api/protos/xrDestroyFacialTrackerHTC.adoc[]
 
 .Parameter Descriptions
 ****
@@ -152,7 +153,7 @@ include::{generated}/api/protos/xrDestroyFacialTrackerHTC.txt[]
 flink:xrDestroyFacialTrackerHTC releases the pname:facialTracker and the
 underlying resources when finished with facial tracking experiences.
 
-include::{generated}/validity/protos/xrDestroyFacialTrackerHTC.txt[]
+include::{generated}/validity/protos/xrDestroyFacialTrackerHTC.adoc[]
 --
 
 *Retrieve facial expressions*
@@ -161,7 +162,7 @@ include::{generated}/validity/protos/xrDestroyFacialTrackerHTC.txt[]
 --
 The flink:xrGetFacialExpressionsHTC function is defined as:
 
-include::{generated}/api/protos/xrGetFacialExpressionsHTC.txt[]
+include::{generated}/api/protos/xrGetFacialExpressionsHTC.adoc[]
 
 .Parameter Descriptions
 ****
@@ -174,14 +175,14 @@ include::{generated}/api/protos/xrGetFacialExpressionsHTC.txt[]
 flink:xrGetFacialExpressionsHTC retrieves an array of values of blend shapes
 for a facial expression on a given time.
 
-include::{generated}/validity/protos/xrGetFacialExpressionsHTC.txt[]
+include::{generated}/validity/protos/xrGetFacialExpressionsHTC.adoc[]
 --
 
 [open,refpage='XrFacialExpressionsHTC',type='structs',desc='Returns the expression data',xrefs='xrGetFacialExpressionsHTC']
 --
 The slink:XrFacialExpressionsHTC structure is defined as:
 
-include::{generated}/api/structs/XrFacialExpressionsHTC.txt[]
+include::{generated}/api/structs/XrFacialExpressionsHTC.adoc[]
 
 .Member Descriptions
 ****
@@ -219,7 +220,7 @@ tracker enum (e.g. elink:XrEyeExpressionHTC or elink:XrLipExpressionHTC) as
 described by elink:XrFacialTrackingTypeHTC when creating the
 slink:XrFacialTrackerHTC.
 For example, when the slink:XrFacialTrackerHTC is created with
-pname:facialTrackingType set to
+slink:XrFacialTrackerHTC::pname:facialTrackingType set to
 ename:XR_FACIAL_TRACKING_TYPE_EYE_DEFAULT_HTC, the application must: set the
 pname:expressionCount to dlink:XR_FACIAL_EXPRESSION_EYE_COUNT_HTC, and the
 runtime must: fill the pname:expressionWeightings array ordered with eye
@@ -238,12 +239,12 @@ indices, the runtime must: return ename:XR_ERROR_SIZE_INSUFFICIENT on calls
 to flink:xrGetFacialExpressionsHTC and not change the content in
 pname:expressionWeightings.
 
-include::{generated}/validity/structs/XrFacialExpressionsHTC.txt[]
+include::{generated}/validity/structs/XrFacialExpressionsHTC.adoc[]
 --
 
 [open,refpage='XR_FACIAL_EXPRESSION_EYE_COUNT_HTC',type='defines',desc='The number of blend shapes in an expression of type XR_FACIAL_TRACKING_TYPE_EYE_DEFAULT_HTC',xrefs='XrFacialExpressionsHTC']
 --
-include::{generated}/api/defines/XR_FACIAL_EXPRESSION_EYE_COUNT_HTC.txt[]
+include::{generated}/api/defines/XR_FACIAL_EXPRESSION_EYE_COUNT_HTC.adoc[]
 
 The number of blend shapes in an expression of type
 ename:XR_FACIAL_TRACKING_TYPE_EYE_DEFAULT_HTC.
@@ -251,7 +252,7 @@ ename:XR_FACIAL_TRACKING_TYPE_EYE_DEFAULT_HTC.
 
 [open,refpage='XR_FACIAL_EXPRESSION_LIP_COUNT_HTC',type='defines',desc='The number of blend shapes in an expression of type XR_FACIAL_TRACKING_TYPE_LIP_DEFAULT_HTC',xrefs='XrFacialExpressionsHTC']
 --
-include::{generated}/api/defines/XR_FACIAL_EXPRESSION_LIP_COUNT_HTC.txt[]
+include::{generated}/api/defines/XR_FACIAL_EXPRESSION_LIP_COUNT_HTC.adoc[]
 
 The number of blend shapes in an expression of type
 ename:XR_FACIAL_TRACKING_TYPE_LIP_DEFAULT_HTC.
@@ -268,13 +269,13 @@ according to each set of eye blend shape values.
 
 [open,refpage='XrEyeExpressionHTC',type='enums',desc='The blend shapes of eye expression',xrefs='']
 --
-include::{generated}/api/enums/XrEyeExpressionHTC.txt[]
+include::{generated}/api/enums/XrEyeExpressionHTC.adoc[]
 --
 
 [width="80%",options="header"]
 |====
 2+|ename:XR_EYE_EXPRESSION_LEFT_WIDE_HTC
-^.^a|image::images/XR_EYE_SHAPE_EYE_LEFT_WIDE_HTC.png[Static,width=210]| **Description** +
+^.^a|image::images/XR_EYE_SHAPE_EYE_LEFT_WIDE_HTC.png[width=210]| **Description** +
 This blend shape keeps left eye wide and at that time
 ename:XR_EYE_EXPRESSION_LEFT_BLINK_HTC value is 0.
 |====
@@ -391,7 +392,7 @@ according to each set of lip blend shape values.
 
 [open,refpage='XrLipExpressionHTC',type='enums',desc='The blend shapes of lip expression',xrefs='']
 --
-include::{generated}/api/enums/XrLipExpressionHTC.txt[]
+include::{generated}/api/enums/XrLipExpressionHTC.adoc[]
 --
 
 [width="80%",options="header"]
@@ -484,32 +485,32 @@ This blend shape allows the lips to pout more with a higher value.
 
 [width="80%",options="header"]
 |====
-2+|ename:XR_LIP_EXPRESSION_MOUTH_SMILE_LEFT_HTC
-^.^a|image::images/XR_LIP_SHAPE_MOUTH_SMILE_LEFT_HTC.png[width=210]| **Description** +
+2+|ename:XR_LIP_EXPRESSION_MOUTH_RAISER_LEFT_HTC
+^.^a|image::images/XR_LIP_SHAPE_MOUTH_RAISER_LEFT_HTC.png[width=210]| **Description** +
 This blend shape raises the left side of the mouth further with a
 higher value.
 |====
 
 [width="80%",options="header"]
 |====
-2+|ename:XR_LIP_EXPRESSION_MOUTH_SMILE_RIGHT_HTC
-^.^a|image::images/XR_LIP_SHAPE_MOUTH_SMILE_RIGHT_HTC.png[width=210]| **Description** +
+2+|ename:XR_LIP_EXPRESSION_MOUTH_RAISER_RIGHT_HTC
+^.^a|image::images/XR_LIP_SHAPE_MOUTH_RAISER_RIGHT_HTC.png[width=210]| **Description** +
 This blend shape raises the right side of the mouth further with a
 higher value.
 |====
 
 [width="80%",options="header"]
 |====
-2+|ename:XR_LIP_EXPRESSION_MOUTH_SAD_LEFT_HTC
-^.^a|image::images/XR_LIP_SHAPE_MOUTH_SAD_LEFT_HTC.png[width=210]| **Description** +
+2+|ename:XR_LIP_EXPRESSION_MOUTH_STRETCHER_LEFT_HTC
+^.^a|image::images/XR_LIP_SHAPE_MOUTH_STRETCHER_LEFT_HTC.png[width=210]| **Description** +
 This blend shape lowers the left side of the mouth further with a
 higher value.
 |====
 
 [width="80%",options="header"]
 |====
-2+|ename:XR_LIP_EXPRESSION_MOUTH_SAD_RIGHT_HTC
-^.^a|image::images/XR_LIP_SHAPE_MOUTH_SAD_RIGHT_HTC.png[width=210]| **Description** +
+2+|ename:XR_LIP_EXPRESSION_MOUTH_STRETCHER_RIGHT_HTC
+^.^a|image::images/XR_LIP_SHAPE_MOUTH_STRETCHER_RIGHT_HTC.png[width=210]| **Description** +
 This blend shape lowers the right side of the mouth further with a
 higher value.
 |====
@@ -618,7 +619,7 @@ ename:XR_LIP_EXPRESSION_TONGUE_LONGSTEP1_HTC + ename:XR_LIP_EXPRESSION_TONGUE_LO
 [width="80%",options="header"]
 |====
 2+|ename:XR_LIP_EXPRESSION_TONGUE_UP_HTC
-^.^a|image::images/XR_LIP_SHAPE_TONGUE_UP_HTC.png[width=210] | **Description** +
+^.^a|image::images/XR_LIP_SHAPE_TONGUE_UP_HTC.png[width=210]| **Description** +
 This blend shape sticks the tongue out and up extremely. +
 This example contains (ename:XR_LIP_EXPRESSION_TONGUE_UP_HTC +
 ename:XR_LIP_EXPRESSION_TONGUE_LONGSTEP1_HTC + ename:XR_LIP_EXPRESSION_TONGUE_LONGSTEP2_HTC).
@@ -655,7 +656,7 @@ ename:XR_LIP_EXPRESSION_TONGUE_LONGSTEP1_HTC + ename:XR_LIP_EXPRESSION_TONGUE_LO
 |====
 2+|ename:XR_LIP_EXPRESSION_TONGUE_UPRIGHT_MORPH_HTC
 ^.^a|image::images/XR_LIP_SHAPE_TONGUE_UPRIGHT_MORPH_HTC_error.png[width=150]| **Description** +
-This blend shape doesn't make sense.
+This blend shape does not make sense.
 When both the right and up blend shapes appear at the same time,
 the tongue will be deformed. (ename:XR_LIP_EXPRESSION_TONGUE_RIGHT_HTC +
 ename:XR_LIP_EXPRESSION_TONGUE_UP_HTC + ename:XR_LIP_EXPRESSION_TONGUE_LONGSTEP1_HTC +
@@ -671,7 +672,7 @@ ename:XR_LIP_EXPRESSION_TONGUE_LONGSTEP2_HTC + ename:XR_LIP_EXPRESSION_TONGUE_UP
 |====
 2+|ename:XR_LIP_EXPRESSION_TONGUE_UPLEFT_MORPH_HTC
 ^.^a|image::images/XR_LIP_SHAPE_TONGUE_UPLEFT_MORPH_HTC_error.png[width=150]| **Description** +
-This blend shape doesn't make sense.
+This blend shape does not make sense.
 When both the left and up blend shapes appear at the same time,
 the tongue will be deformed. (ename:XR_LIP_EXPRESSION_TONGUE_LEFT_HTC +
 ename:XR_LIP_EXPRESSION_TONGUE_UP_HTC + ename:XR_LIP_EXPRESSION_TONGUE_LONGSTEP1_HTC +
@@ -687,7 +688,7 @@ ename:XR_LIP_EXPRESSION_TONGUE_LONGSTEP2_HTC + ename:XR_LIP_EXPRESSION_TONGUE_UP
 |====
 2+|ename:XR_LIP_EXPRESSION_TONGUE_DOWNRIGHT_MORPH_HTC
 ^.^a|image::images/XR_LIP_SHAPE_TONGUE_DOWNRIGHT_MORPH_HTC_error.png[width=150]| **Description** +
-This blend shape doesn't make sense.
+This blend shape does not make sense.
 When both the right and down blend shapes appear at the same time,
 the tongue will be deformed. (ename:XR_LIP_EXPRESSION_TONGUE_RIGHT_HTC +
 ename:XR_LIP_EXPRESSION_TONGUE_DOWN_HTC + ename:XR_LIP_EXPRESSION_TONGUE_LONGSTEP1_HTC +
@@ -703,7 +704,7 @@ ename:XR_LIP_EXPRESSION_TONGUE_LONGSTEP2_HTC + ename:XR_LIP_EXPRESSION_TONGUE_DO
 |====
 2+|ename:XR_LIP_EXPRESSION_TONGUE_DOWNLEFT_MORPH_HTC
 ^.^a|image::images/XR_LIP_SHAPE_TONGUE_DOWNLEFT_MORPH_HTC_error.png[width=150]| **Description** +
-This blend shape doesn't make sense.
+This blend shape does not make sense.
 When both the left and down blend shapes appear at the same time,
 the tongue will be deformed. (ename:XR_LIP_EXPRESSION_TONGUE_LEFT_HTC +
 ename:XR_LIP_EXPRESSION_TONGUE_DOWN_HTC + ename:XR_LIP_EXPRESSION_TONGUE_LONGSTEP1_HTC +
@@ -774,3 +775,15 @@ elink:XrStructureType enumeration is extended with:
 
 * Revision 2, 2022-09-22 (Andy Chen)
 ** Correct the range of the blink blend shapes.
+
+* Revision 3, 2024-07-26 (Andy Chen)
+** Change expression naming convention: rename
+   `XR_LIP_EXPRESSION_MOUTH_SMILE_RIGHT_HTC` to
+   `XR_LIP_EXPRESSION_MOUTH_RAISER_RIGHT_HTC`,
+   `XR_LIP_EXPRESSION_MOUTH_SMILE_LEFT_HTC` to
+   `XR_LIP_EXPRESSION_MOUTH_RAISER_LEFT_HTC`,
+   `XR_LIP_EXPRESSION_MOUTH_SAD_RIGHT_HTC` to
+   `XR_LIP_EXPRESSION_MOUTH_STRETCHER_RIGHT_HTC` and
+   `XR_LIP_EXPRESSION_MOUTH_SAD_LEFT_HTC` to
+   `XR_LIP_EXPRESSION_MOUTH_STRETCHER_LEFT_HTC`, providing the old names as
+   compatibility aliases.

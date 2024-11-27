@@ -24,7 +24,7 @@ mesh.
 It enables applications to render hands in XR experiences and interact with
 virtual objects using hand meshes.
 
-The application must: also enable the `<<XR_EXT_hand_tracking>>` extension
+The application must: also enable the apiext:XR_EXT_hand_tracking extension
 in order to use this extension.
 
 *Inspect system capability*
@@ -35,7 +35,7 @@ An application can: inspect whether the system is capable of hand tracking
 meshes by chaining an slink:XrSystemHandTrackingMeshPropertiesMSFT structure
 to the slink:XrSystemProperties when calling flink:xrGetSystemProperties.
 
-include::{generated}/api/structs/XrSystemHandTrackingMeshPropertiesMSFT.txt[]
+include::{generated}/api/structs/XrSystemHandTrackingMeshPropertiesMSFT.adoc[]
 
 .Member Descriptions
 ****
@@ -66,7 +66,7 @@ An application should: use pname:maxHandMeshIndexCount and
 pname:maxHandMeshVertexCount to preallocate hand mesh buffers and reuse them
 in their render loop when calling flink:xrUpdateHandMeshMSFT every frame.
 
-include::{generated}/validity/structs/XrSystemHandTrackingMeshPropertiesMSFT.txt[]
+include::{generated}/validity/structs/XrSystemHandTrackingMeshPropertiesMSFT.adoc[]
 --
 
 ==== Obtain a hand tracker handle
@@ -87,7 +87,7 @@ flink:xrCreateHandMeshSpaceMSFT.
 The position and normal of hand mesh vertices will be represented in this
 space.
 
-include::{generated}/api/protos/xrCreateHandMeshSpaceMSFT.txt[]
+include::{generated}/api/protos/xrCreateHandMeshSpaceMSFT.adoc[]
 
 .Parameter Descriptions
 ****
@@ -128,16 +128,17 @@ must: return space location with ename:XR_SPACE_LOCATION_POSITION_VALID_BIT
 and ename:XR_SPACE_LOCATION_ORIENTATION_VALID_BIT unset.
 
 The application may: create a mesh space for the reference hand by setting
-pname:handPoseType to ename:XR_HAND_POSE_TYPE_REFERENCE_OPEN_PALM_MSFT.
+slink:XrHandPoseTypeInfoMSFT::pname:handPoseType to
+ename:XR_HAND_POSE_TYPE_REFERENCE_OPEN_PALM_MSFT.
 Hand mesh spaces for the reference hand must: only be locatable in reference
 to mesh spaces or joint spaces of the reference hand.
 
-include::{generated}/validity/protos/xrCreateHandMeshSpaceMSFT.txt[]
+include::{generated}/validity/protos/xrCreateHandMeshSpaceMSFT.adoc[]
 --
 
 [open,refpage='XrHandMeshSpaceCreateInfoMSFT',type='structs',desc='The information to create a hand mesh space',xrefs='xrCreateHandMeshSpaceMSFT']
 --
-include::{generated}/api/structs/XrHandMeshSpaceCreateInfoMSFT.txt[]
+include::{generated}/api/structs/XrHandMeshSpaceCreateInfoMSFT.adoc[]
 
 .Member Descriptions
 ****
@@ -155,7 +156,7 @@ include::{generated}/api/structs/XrHandMeshSpaceCreateInfoMSFT.txt[]
   of the hand mesh space.
 ****
 
-include::{generated}/validity/structs/XrHandMeshSpaceCreateInfoMSFT.txt[]
+include::{generated}/validity/structs/XrHandMeshSpaceCreateInfoMSFT.adoc[]
 --
 
 ==== Locate the hand mesh
@@ -168,7 +169,7 @@ The hand mesh's vertices position and normal are represented in the hand
 mesh space created by flink:xrCreateHandMeshSpaceMSFT with a same
 slink:XrHandTrackerEXT.
 
-include::{generated}/api/protos/xrUpdateHandMeshMSFT.txt[]
+include::{generated}/api/protos/xrUpdateHandMeshMSFT.adoc[]
 
 .Parameter Descriptions
 ****
@@ -181,19 +182,22 @@ include::{generated}/api/protos/xrUpdateHandMeshMSFT.txt[]
 ****
 
 The application should: preallocate the index buffer and vertex buffer in
-slink:XrHandMeshMSFT using the pname:maxHandMeshIndexCount and
-pname:maxHandMeshVertexCount from the
-slink:XrSystemHandTrackingMeshPropertiesMSFT returned from the
+slink:XrHandMeshMSFT using the
+slink:XrSystemHandTrackingMeshPropertiesMSFT::pname:maxHandMeshIndexCount
+and
+slink:XrSystemHandTrackingMeshPropertiesMSFT::pname:maxHandMeshVertexCount
+from the slink:XrSystemHandTrackingMeshPropertiesMSFT returned from the
 flink:xrGetSystemProperties function.
 
 The application should: preallocate the slink:XrHandMeshMSFT structure and
 reuse it for each frame so as to reduce the copies of data when underlying
 tracking data is not changed.
-The application should use pname:indexBufferChanged and
-pname:vertexBufferChanged in slink:XrHandMeshMSFT to detect changes and
-avoid unnecessary data processing when there is no changes.
+The application should use slink:XrHandMeshMSFT::pname:indexBufferChanged
+and slink:XrHandMeshMSFT::pname:vertexBufferChanged in slink:XrHandMeshMSFT
+to detect changes and avoid unnecessary data processing when there is no
+changes.
 
-include::{generated}/validity/protos/xrUpdateHandMeshMSFT.txt[]
+include::{generated}/validity/protos/xrUpdateHandMeshMSFT.adoc[]
 --
 
 [open,refpage='XrHandMeshUpdateInfoMSFT',type='structs',desc='The information to update a hand mesh',xrefs='xrUpdateHandMeshMSFT']
@@ -202,7 +206,7 @@ include::{generated}/validity/protos/xrUpdateHandMeshMSFT.txt[]
 A slink:XrHandMeshUpdateInfoMSFT describes the information to update a hand
 mesh.
 
-include::{generated}/api/structs/XrHandMeshUpdateInfoMSFT.txt[]
+include::{generated}/api/structs/XrHandMeshUpdateInfoMSFT.adoc[]
 
 .Member Descriptions
 ****
@@ -220,10 +224,10 @@ A runtime may: not maintain a full history of hand mesh data, therefore the
 returned slink:XrHandMeshMSFT might return data that's not exactly
 corresponding to the pname:time input.
 If the runtime cannot return any tracking data for the given pname:time at
-all, it must: set pname:isActive to ename:XR_FALSE for the call to
-flink:xrUpdateHandMeshMSFT.
-Otherwise, if the runtime returns pname:isActive as ename:XR_TRUE, the data
-in slink:XrHandMeshMSFT must be valid to use.
+all, it must: set slink:XrHandMeshMSFT::pname:isActive to ename:XR_FALSE for
+the call to flink:xrUpdateHandMeshMSFT.
+Otherwise, if the runtime returns slink:XrHandMeshMSFT::pname:isActive as
+ename:XR_TRUE, the data in slink:XrHandMeshMSFT must be valid to use.
 
 An application can choose different pname:handPoseType values to query the
 hand mesh data.
@@ -231,7 +235,7 @@ The returned hand mesh must: be consistent to the hand joint space location
 on the same slink:XrHandTrackerEXT when using the same
 elink:XrHandPoseTypeMSFT.
 
-include::{generated}/validity/structs/XrHandMeshUpdateInfoMSFT.txt[]
+include::{generated}/validity/structs/XrHandMeshUpdateInfoMSFT.adoc[]
 --
 
 [open,refpage='XrHandMeshMSFT',type='structs',desc='The data of a hand mesh',xrefs='xrUpdateHandMeshMSFT']
@@ -240,7 +244,7 @@ include::{generated}/validity/structs/XrHandMeshUpdateInfoMSFT.txt[]
 A slink:XrHandMeshMSFT structure contains data and buffers to receive
 updates of hand mesh tracking data from flink:xrUpdateHandMeshMSFT function.
 
-include::{generated}/api/structs/XrHandMeshMSFT.txt[]
+include::{generated}/api/structs/XrHandMeshMSFT.adoc[]
 
 .Member Descriptions
 ****
@@ -269,8 +273,8 @@ and must: not change the content in pname:indexBuffer or pname:vertexBuffer,
 
 When the returned pname:isActive value is ename:XR_TRUE, the hand tracking
 mesh represented in pname:indexBuffer and pname:vertexBuffer are updated to
-the latest data of the pname:time given to the flink:xrUpdateHandMeshMSFT
-function.
+the latest data of the slink:XrHandMeshUpdateInfoMSFT::pname:time given to
+the flink:xrUpdateHandMeshMSFT function.
 The runtime must: set pname:indexBufferChanged and pname:vertexBufferChanged
 to reflect whether the index or vertex buffer's content are changed during
 the update.
@@ -284,7 +288,7 @@ ename:XR_TRUE, the returned `indexBuffer.indexCountOutput` value must: be
 positive and multiple of 3, and `vertexBuffer.vertexCountOutput` value must:
 be equal to or larger than 3.
 
-include::{generated}/validity/structs/XrHandMeshMSFT.txt[]
+include::{generated}/validity/structs/XrHandMeshMSFT.adoc[]
 --
 
 [open,refpage='XrHandMeshIndexBufferMSFT',type='structs',desc='The index buffer of a hand mesh',xrefs='XrSystemHandTrackingMeshPropertiesMSFT xrUpdateHandMeshMSFT']
@@ -292,7 +296,7 @@ include::{generated}/validity/structs/XrHandMeshMSFT.txt[]
 A slink:XrHandMeshIndexBufferMSFT structure includes an array of indices
 describing the triangle list of a hand mesh.
 
-include::{generated}/api/structs/XrHandMeshIndexBufferMSFT.txt[]
+include::{generated}/api/structs/XrHandMeshIndexBufferMSFT.adoc[]
 
 .Member Descriptions
 ****
@@ -308,7 +312,7 @@ include::{generated}/api/structs/XrHandMeshIndexBufferMSFT.txt[]
 ****
 
 An application should: preallocate the indices array using the
-pname:maxHandMeshIndexCount in slink:XrSystemHandTrackingMeshPropertiesMSFT
+slink:XrSystemHandTrackingMeshPropertiesMSFT::pname:maxHandMeshIndexCount
 returned from flink:xrGetSystemProperties.
 In this way, the application can avoid possible insufficient buffer sizees
 for each query, and therefore avoid reallocating memory each frame.
@@ -325,7 +329,7 @@ pname:indexBufferKey and pname:indices, and return 0 for
 pname:indexCountOutput.
 
 If the input pname:indexCapacityInput is equal to or larger than the
-pname:maxHandMeshIndexCount in slink:XrSystemHandTrackingMeshPropertiesMSFT
+slink:XrSystemHandTrackingMeshPropertiesMSFT::pname:maxHandMeshIndexCount
 returned from flink:xrGetSystemProperties, the runtime must: not return
 ename:XR_ERROR_SIZE_INSUFFICIENT error on flink:xrUpdateHandMeshMSFT because
 of insufficient index buffer size.
@@ -337,10 +341,11 @@ pname:indices.
 
 If the input pname:indexBufferKey is not 0, the runtime can: either return
 without changing pname:indexCountOutput or content in pname:indices, and
-return ename:XR_FALSE for pname:indexBufferChanged indicating the indices
-are not changed; or return a new non-zero pname:indexBufferKey and fill in
-latest data in pname:indexCountOutput and pname:indices, and return
-ename:XR_TRUE for pname:indexBufferChanged indicating the indices are
+return ename:XR_FALSE for slink:XrHandMeshMSFT::pname:indexBufferChanged
+indicating the indices are not changed; or return a new non-zero
+pname:indexBufferKey and fill in latest data in pname:indexCountOutput and
+pname:indices, and return ename:XR_TRUE for
+slink:XrHandMeshMSFT::pname:indexBufferChanged indicating the indices are
 updated to a newer version.
 
 An application can: keep the slink:XrHandMeshIndexBufferMSFT structure for
@@ -360,7 +365,7 @@ ename:XR_HAND_POSE_TYPE_REFERENCE_OPEN_PALM_MSFT, and apply the resultant UV
 data on vertices to the mesh returned from the same hand tracker using
 ename:XR_HAND_POSE_TYPE_TRACKED_MSFT.
 
-include::{generated}/validity/structs/XrHandMeshIndexBufferMSFT.txt[]
+include::{generated}/validity/structs/XrHandMeshIndexBufferMSFT.adoc[]
 --
 
 [open,refpage='XrHandMeshVertexBufferMSFT',type='structs',desc='The vertex buffer of a hand mesh',xrefs='XrSystemHandTrackingMeshPropertiesMSFT xrUpdateHandMeshMSFT']
@@ -368,7 +373,7 @@ include::{generated}/validity/structs/XrHandMeshIndexBufferMSFT.txt[]
 A slink:XrHandMeshVertexBufferMSFT structure includes an array of vertices
 of the hand mesh represented in the hand mesh space.
 
-include::{generated}/api/structs/XrHandMeshVertexBufferMSFT.txt[]
+include::{generated}/api/structs/XrHandMeshVertexBufferMSFT.adoc[]
 
 .Member Descriptions
 ****
@@ -386,7 +391,7 @@ include::{generated}/api/structs/XrHandMeshVertexBufferMSFT.txt[]
 ****
 
 An application should: preallocate the vertices array using the
-pname:maxHandMeshVertexCount in slink:XrSystemHandTrackingMeshPropertiesMSFT
+slink:XrSystemHandTrackingMeshPropertiesMSFT::pname:maxHandMeshVertexCount
 returned from flink:xrGetSystemProperties.
 In this way, the application can avoid possible insufficient buffer sizes
 for each query, and therefore avoid reallocating memory each frame.
@@ -403,7 +408,7 @@ pname:vertexUpdateTime and pname:vertices, and return 0 for
 pname:vertexCountOutput.
 
 If the input pname:vertexCapacityInput is equal to or larger than the
-pname:maxHandMeshVertexCount in slink:XrSystemHandTrackingMeshPropertiesMSFT
+slink:XrSystemHandTrackingMeshPropertiesMSFT::pname:maxHandMeshVertexCount
 returned from flink:xrGetSystemProperties, the runtime must: not return
 ename:XR_ERROR_SIZE_INSUFFICIENT on calls to the flink:xrUpdateHandMeshMSFT
 because of insufficient vertex buffer size.
@@ -415,11 +420,12 @@ pname:vertexCountOutput and pname:vertices fields.
 
 If the input pname:vertexUpdateTime is not 0, the runtime can: either return
 without changing pname:vertexCountOutput or the content in pname:vertices,
-and return ename:XR_FALSE for pname:vertexBufferChanged indicating the
-vertices are not changed; or return a new non-zero pname:vertexUpdateTime
-and fill in latest data in pname:vertexCountOutput and pname:vertices and
-return ename:XR_TRUE for pname:vertexBufferChanged indicating the vertices
-are updated to a newer version.
+and return ename:XR_FALSE for
+slink:XrHandMeshMSFT::pname:vertexBufferChanged indicating the vertices are
+not changed; or return a new non-zero pname:vertexUpdateTime and fill in
+latest data in pname:vertexCountOutput and pname:vertices and return
+ename:XR_TRUE for slink:XrHandMeshMSFT::pname:vertexBufferChanged indicating
+the vertices are updated to a newer version.
 
 An application can: keep the slink:XrHandMeshVertexBufferMSFT structure for
 each frame in frame loop and use the returned pname:vertexUpdateTime to
@@ -427,7 +433,7 @@ detect the changes of the content in pname:vertices.
 The application can therefore avoid unnecessary processing of vertices, such
 as coping them to GPU memory.
 
-include::{generated}/validity/structs/XrHandMeshVertexBufferMSFT.txt[]
+include::{generated}/validity/structs/XrHandMeshVertexBufferMSFT.adoc[]
 --
 
 [open,refpage='XrHandMeshVertexMSFT',type='structs',desc='The vertex of hand mesh',xrefs='XrHandMeshVertexBufferMSFT xrUpdateHandMeshMSFT']
@@ -435,7 +441,7 @@ include::{generated}/validity/structs/XrHandMeshVertexBufferMSFT.txt[]
 Each slink:XrHandMeshVertexMSFT includes the position and normal of a vertex
 of a hand mesh.
 
-include::{generated}/api/structs/XrHandMeshVertexMSFT.txt[]
+include::{generated}/api/structs/XrHandMeshVertexMSFT.adoc[]
 
 .Member Descriptions
 ****
@@ -446,7 +452,7 @@ include::{generated}/api/structs/XrHandMeshVertexMSFT.txt[]
   space.
 ****
 
-include::{generated}/validity/structs/XrHandMeshVertexMSFT.txt[]
+include::{generated}/validity/structs/XrHandMeshVertexMSFT.adoc[]
 --
 
 ==== Example code for hand mesh tracking
@@ -567,7 +573,7 @@ slink:XrHandTrackerCreateInfoEXT::pname:next pointer when calling
 flink:xrCreateHandTrackerEXT to indicate the hand tracker to return the hand
 pose of specific elink:XrHandPoseTypeMSFT.
 
-include::{generated}/api/structs/XrHandPoseTypeInfoMSFT.txt[]
+include::{generated}/api/structs/XrHandPoseTypeInfoMSFT.adoc[]
 
 .Member Descriptions
 ****
@@ -579,7 +585,7 @@ include::{generated}/api/structs/XrHandPoseTypeInfoMSFT.txt[]
   of hand pose of the hand tracking.
 ****
 
-include::{generated}/validity/structs/XrHandPoseTypeInfoMSFT.txt[]
+include::{generated}/validity/structs/XrHandPoseTypeInfoMSFT.adoc[]
 --
 
 [open,refpage='XrHandPoseTypeMSFT',type='enums',desc='Describe type of input hand pose',xrefs='XrHandTrackerCreateInfoEXT xrCreateHandTrackerEXT']
@@ -587,7 +593,7 @@ include::{generated}/validity/structs/XrHandPoseTypeInfoMSFT.txt[]
 The elink:XrHandPoseTypeMSFT describes the type of input hand pose from
 slink:XrHandTrackerEXT.
 
-include::{generated}/api/enums/XrHandPoseTypeMSFT.txt[]
+include::{generated}/api/enums/XrHandPoseTypeMSFT.adoc[]
 
 .Enumerant Descriptions
 ****
@@ -741,7 +747,7 @@ elink:XrStructureType enumeration is extended with:
 ** Initial extension description
 * Revision 2, 2020-04-20 (Yin LI)
 ** Change joint spaces to locate joints function.
-* Revision 3, 2021-04-13 (Ryan Pavlik, Collabora)
+* Revision 3, 2021-04-13 (Rylie Pavlik, Collabora, Ltd.)
 ** Correctly show function pointer retrieval in sample code
 * Revision 4, 2021-10-20 (Darryl Gough)
 ** Winding order for hand mesh is corrected to clockwise to match runtime

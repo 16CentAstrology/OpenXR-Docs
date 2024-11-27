@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 #
+# Copyright 2018-2024, The Khronos Group Inc.
 # Copyright (c) 2018-2019 Collabora, Ltd.
 #
 # SPDX-License-Identifier: Apache-2.0
 #
-# Author(s):    Ryan Pavlik <ryan.pavlik@collabora.com>
+# Author(s):    Rylie Pavlik <rylie.pavlik@collabora.com>
 #
 # Purpose:      This file performs some basic checks of the custom macros
 #               used in the AsciiDoctor source for the spec, especially
@@ -18,11 +19,28 @@ from spec_tools.macro_checker import MacroChecker
 from spec_tools.macro_checker_file import BlockType, MacroCheckerFile
 from spec_tools.main import checkerMain
 from spec_tools.shared import MessageId
+from apiconventions import APIConventions
 
 ###
 # "Configuration" constants
 
-EXTRA_DEFINES = ('XRAPI_ATTR', 'XRAPI_CALL', 'XRAPI_PTR', 'XR_NO_STDINT_H')
+FREEFORM_CATEGORY = 'freeform'
+REFLINK_MACRO = 'reflink'
+
+EXTRA_DEFINES = (
+    'XRAPI_ATTR',
+    'XRAPI_CALL',
+    'XRAPI_PTR',
+    'XR_NO_STDINT_H',
+    'XR_VERSION_1_0',
+    'XR_LOADER_VERSION_1_0',
+    'XR_VERSION_1_1',
+)
+
+# TODO move permissions into XML eventually
+EXTRA_REFPAGES = (
+    'org.khronos.openxr.permission.ext.HAND_TRACKING',
+)
 
 # These are marked with the code: macro
 SYSTEM_TYPES = set(('void', 'char', 'float', 'size_t',
@@ -61,12 +79,17 @@ class XREntityDatabase(EntityDatabase):
         # TODO: What about flag wildcards? There are a few such uses...
         self.addMacro('elink', ('enums', 'flags',), link=True)
         self.addMacro('basetype', ('basetypes',), link=True)
+        self.addMacro(REFLINK_MACRO, (FREEFORM_CATEGORY,), link=True)
+
 
     def populateEntities(self):
         # These are not mentioned in the XML
         for name in EXTRA_DEFINES:
-            self.addEntity(name, 'dlink', category='configdefines',
-                           generates=False)
+            self.addEntity(name, 'dlink',
+                           category=FREEFORM_CATEGORY, generates=False)
+        for name in EXTRA_REFPAGES:
+            self.addEntity(name, REFLINK_MACRO,
+                           category=FREEFORM_CATEGORY, generates=False)
 
     def handleType(self, name, info, requires):
         """Extend superclass implementation for OpenXR bitmasks."""
@@ -118,15 +141,25 @@ class XRMacroCheckerFile(MacroCheckerFile):
         super().processBlockOpen(block_type, context=context,
                                  delimiter=delimiter)
 
-    def computeExpectedRefPageFromInclude(self, entity):
-        """Compute the expected ref page entity based on an include entity name."""
-        return entity
+    def perform_entity_check(self, t):
+        """Returns True if an entity check should be performed on this
+           refpage type.
 
+           May override."""
+
+        return t != FREEFORM_CATEGORY
+
+    @property
+    def allowEnumXrefs(self):
+        """Returns True if enums can be specified in the 'xrefs' attribute
+        of a refpage.
+        """
+        return True
 
 def makeMacroChecker(enabled_messages):
     """Create a correctly-configured MacroChecker instance."""
     entity_db = XREntityDatabase()
-    return MacroChecker(enabled_messages, entity_db, XRMacroCheckerFile, ROOT)
+    return MacroChecker(enabled_messages, entity_db, XRMacroCheckerFile, ROOT, APIConventions)
 
 
 if __name__ == '__main__':

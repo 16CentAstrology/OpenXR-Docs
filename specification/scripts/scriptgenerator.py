@@ -1,6 +1,6 @@
 #!/usr/bin/python3 -i
 #
-# Copyright 2013-2022 The Khronos Group Inc.
+# Copyright 2013-2024, The Khronos Group Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
 
@@ -182,7 +182,7 @@ class ScriptOutputGenerator(OutputGenerator):
 
         pat = 'VkExternalFenceFeatureFlagBits'
         if name[0:len(pat)] == pat:
-            print('{}(name = {}) matches {}'.format(procname, name, pat))
+            print(f'{procname}(name = {name}) matches {pat}')
             import pdb
             pdb.set_trace()
 

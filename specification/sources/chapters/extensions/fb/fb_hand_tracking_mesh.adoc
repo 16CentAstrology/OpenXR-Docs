@@ -12,15 +12,16 @@ include::{generated}/meta/XR_FB_hand_tracking_mesh.adoc[]
 
 *Overview*
 
-The <<XR_EXT_hand_tracking>> extension provides a list of hand joint poses
-but no mechanism to render a skinned hand mesh.
+The apiext:XR_EXT_hand_tracking extension provides a list of hand joint
+poses but no mechanism to render a skinned hand mesh.
 
 This extension allows:
 
 * An application to get a skinned hand mesh and a bind pose skeleton that
-  can be used to render a hand object driven by the joints from the
-  <<XR_EXT_hand_tracking>> extension.
-* Control the scale of the hand joints returned by <<XR_EXT_hand_tracking>>.
+  can: be used to render a hand object driven by the joints from the
+  apiext:XR_EXT_hand_tracking extension.
+* Control the scale of the hand joints returned by
+  apiext:XR_EXT_hand_tracking.
 
 
 *New Object Types*
@@ -42,7 +43,7 @@ elink:XrStructureType enumeration is extended with:
 --
 The slink:XrVector4sFB structure is defined as:
 
-include::{generated}/api/structs/XrVector4sFB.txt[]
+include::{generated}/api/structs/XrVector4sFB.adoc[]
 
 This is a short integer, four component vector type, used for per-vertex
 joint indexing for mesh skinning.
@@ -55,7 +56,7 @@ joint indexing for mesh skinning.
 * pname:w is the `w` component of the vector.
 ****
 
-include::{generated}/validity/structs/XrVector4sFB.txt[]
+include::{generated}/validity/structs/XrVector4sFB.adoc[]
 --
 
 [open,refpage='XrHandTrackingMeshFB',type='structs',desc='A container of mesh data',xrefs='']
@@ -67,7 +68,7 @@ and one with index data.
 
 The slink:XrHandTrackingMeshFB structure is defined as:
 
-include::{generated}/api/structs/XrHandTrackingMeshFB.txt[]
+include::{generated}/api/structs/XrHandTrackingMeshFB.adoc[]
 
 .Member Descriptions
 ****
@@ -105,8 +106,9 @@ include::{generated}/api/structs/XrHandTrackingMeshFB.txt[]
   pname:jointCapacityInput, pname:vertexCapacityInput, or
   pname:indexCapacityInput is insufficient.
 * pname:indices is an array of triangle indices.
-* See the <<buffer-size-parameters> section for a detailed description of
-  retrieving the required array sizes in the "struct form" as used here.
+* See the <<fundamentals-buffer-size-parameters>> section for a detailed
+  description of retrieving the array sizes in the "struct form" as used
+  here.
 ****
 
 All arrays are application-allocated, and all may: be code:NULL if any of
@@ -118,7 +120,7 @@ the lifetime of the corresponding slink:XrInstance, and is intended to be
 retrieved once then used in combination with data changing per-frame
 retrieved from flink:xrLocateHandJointsEXT.
 
-include::{generated}/validity/structs/XrHandTrackingMeshFB.txt[]
+include::{generated}/validity/structs/XrHandTrackingMeshFB.adoc[]
 --
 
 
@@ -134,7 +136,7 @@ transforms.
 
 The slink:XrHandTrackingScaleFB structure is defined as:
 
-include::{generated}/api/structs/XrHandTrackingScaleFB.txt[]
+include::{generated}/api/structs/XrHandTrackingScaleFB.adoc[]
 
 .Member Descriptions
 ****
@@ -143,20 +145,20 @@ include::{generated}/api/structs/XrHandTrackingScaleFB.txt[]
   chain.
   No such structures are defined in core OpenXR or this extension.
 * pname:sensorOutput is an output value: the currently measured scale as
-  would be applied without passing this structure.
+  otherwise applied without passing this structure.
 * pname:currentOutput is an output value: the effective output that the bind
-  skeleton is getting on the current call, which may be subject to
+  skeleton is getting on the current call, which may: be subject to
   filtering, scaling, or validation.
-* pname:overrideHandScale indicates whether the runtime should scale the
+* pname:overrideHandScale indicates whether the runtime must: scale the
   output of this flink:xrLocateHandJointsEXT call according to
   pname:overrideValueInput
-* pname:overrideValueInput is an optional input value, enabled only when the
-  pname:overrideHandScale parameter is set.
+* pname:overrideValueInput is an optional: input value, enabled only when
+  the pname:overrideHandScale parameter is set.
   Setting this to 1.0 and setting pname:overrideHandScale to code:true will
   give the joints in mesh binding scale.
 ****
 
-include::{generated}/validity/structs/XrHandTrackingScaleFB.txt[]
+include::{generated}/validity/structs/XrHandTrackingScaleFB.adoc[]
 --
 
 *New Functions*
@@ -165,7 +167,7 @@ include::{generated}/validity/structs/XrHandTrackingScaleFB.txt[]
 --
 The flink:xrGetHandMeshFB function is defined as:
 
-include::{generated}/api/protos/xrGetHandMeshFB.txt[]
+include::{generated}/api/protos/xrGetHandMeshFB.adoc[]
 
 .Parameter Descriptions
 ****
@@ -180,7 +182,7 @@ hand joints.
 As discussed in the specification for that structure, the data enumerated by
 this call is constant during the lifetime of an slink:XrInstance.
 
-include::{generated}/validity/protos/xrGetHandMeshFB.txt[]
+include::{generated}/validity/protos/xrGetHandMeshFB.adoc[]
 --
 
 *Issues*
@@ -192,5 +194,5 @@ include::{generated}/validity/protos/xrGetHandMeshFB.txt[]
 * Revision 2, 2022-04-20 (John Kearney)
 ** Correct next chain parent for `XrHandTrackingScaleFB` to
    `XrHandJointLocationsEXT`
-* Revision 3, 2022-07-07 (Ryan Pavlik, Collabora)
+* Revision 3, 2022-07-07 (Rylie Pavlik, Collabora, Ltd.)
 ** Correct markup and thus generated valid usage for two-call idiom.

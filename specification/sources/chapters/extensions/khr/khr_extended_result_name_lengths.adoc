@@ -1,0 +1,94 @@
+// Copyright (c) 2024-2026 The Khronos Group Inc.
+//
+// SPDX-License-Identifier: CC-BY-4.0
+
+include::{generated}/meta/XR_KHR_extended_result_name_lengths.adoc[]
+
+*Last Modified Date*::
+    2024-08-12
+
+*IP Status*::
+    No known IP claims.
+
+*Contributors*::
+    Nihav Jain, Google +
+
+
+==== Overview
+
+This extension extends the maximum result name sizes and provides a new
+function to access these new extended names.
+
+flink:xrResultToString2KHR is provided to allow retrieving the string names
+of elink:XrResult enumerants with lengths that exceed the original limit of
+63 bytes (64 bytes including the null terminator).
+flink:xrResultToString2KHR returns name strings for structure type
+enumerants up to 255 bytes in length (256 bytes including the null
+terminator).
+An application can: use flink:xrResultToString2KHR as a drop-in replacement
+for flink:xrResultToString, as it works with all elink:XrResult enumerants,
+regardless of string name length.
+
+
+==== Retrieving XrResult Enumerant Strings
+
+If the original flink:xrResultToString is used to retrieve string names for
+elink:XrResult enumerants with name lengths in excess of 63 bytes, its
+behavior is clarified as follows.
+flink:xrResultToString must: populate the buffer with the correct name,
+except that the string must: be truncated at a codepoint boundary to fit
+within the available buffer.
+That is, the returned string must: always be valid UTF-8.
+
+
+[open,refpage='xrResultToString2KHR',type='protos',desc='Converts an XrResult to a UTF-8 string',xrefs='xrResultToString']
+--
+The flink:xrResultToString2KHR function is defined as:
+
+include::{generated}/api/protos/xrResultToString2KHR.adoc[]
+
+.Parameter Descriptions
+****
+* pname:instance is the handle of the instance to ask for the string.
+* pname:value is the elink:XrResult value to turn into a string.
+* pname:buffer is the buffer that will be used to return the string in.
+****
+
+Returns the name of the provided elink:XrResult value by copying a valid
+null-terminated UTF-8 string into pname:buffer.
+
+In all cases the returned string must: be one of:
+
+.Result String Return Values
+****
+* The literal string defined for the provide numeric value in the core spec
+  or extension.
+  (e.g. the value 0 results in the string `XR_SUCCESS`)
+* `XR_UNKNOWN_SUCCESS_` concatenated with the positive result number
+  expressed as a decimal number.
+* `XR_UNKNOWN_FAILURE_` concatenated with the negative result number
+  expressed as a decimal number.
+****
+
+For elink:XrResult enumerants whose names fit within the original size limit
+of 63 bytes, flink:xrResultToString2KHR must: return the same resultant
+string as flink:xrResultToString, up to the null terminator.
+
+include::{generated}/validity/protos/xrResultToString2KHR.adoc[]
+--
+
+[open,refpage='XR_MAX_RESULT_STRING_SIZE_EXTENDED_KHR',type='enums',desc='The buffer size of xrResultToString2KHR',xrefs='xrResultToString2KHR']
+--
+The ename:XR_MAX_RESULT_STRING_SIZE_EXTENDED_KHR enumerant defines the size
+of the buffer passed to flink:xrResultToString2KHR.
+
+include::{generated}/api/enums/XR_MAX_RESULT_STRING_SIZE_EXTENDED_KHR.adoc[]
+
+--
+
+include::{generated}/interfaces/XR_KHR_extended_result_name_lengths.adoc[leveloffset=1]
+
+*Version History*
+
+* Revision 1, 2025-08-21 (Nihav Jain)
+** Initial extension description

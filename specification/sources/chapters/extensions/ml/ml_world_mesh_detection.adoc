@@ -645,7 +645,7 @@ class MeshDetector {
     XrSpace m_LocalSpace; // previously initialized.
 
     State m_State{INFO_START};
-    XrFutureEXT m_Future{XR_NULL_FUTURE_EXT};
+    XrFutureEXT m_Future {XR_NULL_FUTURE_EXT};
     XrWorldMeshDetectorML m_Detector;
     std::vector<XrWorldMeshBlockStateML> m_MeshBlocks;
 

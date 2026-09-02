@@ -434,7 +434,7 @@ if (environmentRaycastProperties.supportsEnvironmentRaycast == XR_FALSE) {
 }
 
 // Create a new environment raycaster
-XrFutureEXT createFuture{XR_NULL_HANDLE};
+XrFutureEXT createFuture {XR_NULL_HANDLE};
 XrEnvironmentRaycasterCreateInfoMETA createInfo = {
     .type = XR_TYPE_ENVIRONMENT_RAYCASTER_CREATE_INFO_META,
 };

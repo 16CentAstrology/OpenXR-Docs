@@ -130,8 +130,8 @@ without reallocation.
 As an exception to valid usage, an otherwise-valid structure passed as
 slink:XrRecommendedLayerResolutionGetInfoMETA::pname:layer may: contain
 dlink:XR_NULL_HANDLE in place of valid slink:XrSwapchain handle(s) for this
-function only, to obtain a recommended resolution resolution for the purpose
-of allocating a swapchain.
+function only, to obtain a recommended resolution for the purpose of
+allocating a swapchain.
 If at least one otherwise-required slink:XrSwapchain handle within
 slink:XrRecommendedLayerResolutionGetInfoMETA::pname:layer is
 dlink:XR_NULL_HANDLE, the runtime must: interpret this as a request for

@@ -76,6 +76,7 @@ Supported component paths for pico_neo3_controller:
 * subpathname:/input/trigger/click
 * subpathname:/input/trigger/value
 * subpathname:/input/trigger/touch
+* subpathname:/input/thumbstick
 * subpathname:/input/thumbstick/y
 * subpathname:/input/thumbstick/x
 * subpathname:/input/thumbstick/click
@@ -104,6 +105,7 @@ use)
 * subpathname:/input/trigger/click
 * subpathname:/input/trigger/value
 * subpathname:/input/trigger/touch
+* subpathname:/input/thumbstick
 * subpathname:/input/thumbstick/y
 * subpathname:/input/thumbstick/x
 * subpathname:/input/thumbstick/click
@@ -122,6 +124,8 @@ Supported component paths for pico_g3_controller:
 * subpathname:/input/grip/pose
 * subpathname:/input/aim/pose
 * subpathname:/input/thumbstick
+* subpathname:/input/thumbstick/y
+* subpathname:/input/thumbstick/x
 * subpathname:/input/thumbstick/click
 
 Be careful with the following difference:

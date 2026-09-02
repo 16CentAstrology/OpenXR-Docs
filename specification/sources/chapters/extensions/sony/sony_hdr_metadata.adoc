@@ -1,0 +1,127 @@
+// Copyright (c) 2026 Sony Corporation
+//
+// SPDX-License-Identifier: CC-BY-4.0
+
+include::{generated}/meta/XR_SONY_hdr_metadata.adoc[]
+
+*Last Modified Date*::
+    2026-02-10
+
+*IP Status*::
+    No known IP claims.
+
+*Contributors*::
+    Kota Suzuki, Sony Corporation +
+    Kenji Tokutake, Sony Corporation
+
+==== Overview
+
+This extension allows applications to set HDR static metadata for a
+swapchain, as defined by the SMPTE ST 2086 and CTA-861.3 standards.
+
+==== Setting HDR Metadata
+
+[open,refpage='xrSetHdrMetadataSONY',type='protos',desc='Sets HDR static metadata for a swapchain',xrefs='XrHdrMetadataSONY']
+--
+The flink:xrSetHdrMetadataSONY function is defined as:
+
+include::{generated}/api/protos/xrSetHdrMetadataSONY.adoc[]
+
+.Parameter Descriptions
+****
+* pname:swapchain is the swapchain to which HDR metadata is applied.
+* pname:hdrMetadata is a pointer to an slink:XrHdrMetadataSONY structure.
+****
+
+flink:xrSetHdrMetadataSONY sets HDR static metadata for the specified
+swapchain.
+
+Applications must: specify the swapchain color space at swapchain creation
+time using slink:XrSwapchainCreateInfoColorSpaceSONY from
+apiext:XR_SONY_swapchain_color_space in order to use this function.
+
+The runtime must: return ename:XR_ERROR_VALIDATION_FAILURE from
+flink:xrSetHdrMetadataSONY if the swapchain was created without an
+slink:XrSwapchainCreateInfoColorSpaceSONY structure in the
+slink:XrSwapchainCreateInfo::pname:next chain.
+
+The runtime may: ignore the provided metadata when HDR static metadata is
+not applicable to the swapchain's color space, such as
+ename:XR_COLOR_SPACE_SRGB_NONLINEAR_SONY.
+
+flink:xrSetHdrMetadataSONY may: be called any number of times on a single
+swapchain and update only specific mutable state related to
+slink:XrHdrMetadataSONY.
+
+include::{generated}/validity/protos/xrSetHdrMetadataSONY.adoc[]
+--
+
+[open,refpage='XrHdrMetadataSONY',type='structs',desc='Describes HDR static metadata',xrefs='XrXYColorSONY xrSetHdrMetadataSONY']
+--
+The slink:XrHdrMetadataSONY structure is defined as:
+
+include::{generated}/api/structs/XrHdrMetadataSONY.adoc[]
+
+.Member Descriptions
+****
+* pname:type is the elink:XrStructureType of this structure.
+* pname:next is code:NULL or a pointer to the next structure in a structure
+  chain.
+  No such structures are defined in core OpenXR or this extension.
+* pname:displayPrimaryRed is an slink:XrXYColorSONY specifying the red
+  primary of the mastering display.
+* pname:displayPrimaryGreen is an slink:XrXYColorSONY specifying the green
+  primary of the mastering display.
+* pname:displayPrimaryBlue is an slink:XrXYColorSONY specifying the blue
+  primary of the mastering display.
+* pname:whitePoint is an slink:XrXYColorSONY specifying the white point of
+  the mastering display.
+* pname:maxLuminance is the maximum luminance of the mastering display in
+  nits.
+* pname:minLuminance is the minimum luminance of the mastering display in
+  nits.
+* pname:maxContentLightLevel is the luminance of the brightest pixel of the
+  content in nits.
+* pname:maxFrameAverageLightLevel is the maximum frame-average luminance of
+  the content in nits.
+****
+
+The slink:XrHdrMetadataSONY represents HDR static metadata defined by the
+SMPTE ST 2086 and CTA-861.3 standards.
+
+A value of 0 for chromaticity or luminance indicates that the value is
+unknown.
+
+For swapchain color spaces whose encoding does not directly represent
+absolute luminance, such as Hybrid Log-Gamma (HLG) or linear encodings, the
+interpretation of luminance values in slink:XrHdrMetadataSONY is
+implementation-defined.
+
+include::{generated}/validity/structs/XrHdrMetadataSONY.adoc[]
+--
+
+[open,refpage='XrXYColorSONY',type='structs',desc='Describes xy chromaticity coordinates',xrefs='XrHdrMetadataSONY']
+--
+The slink:XrXYColorSONY structure is defined as:
+
+include::{generated}/api/structs/XrXYColorSONY.adoc[]
+
+.Member Descriptions
+****
+* pname:x is the x chromaticity coordinate.
+* pname:y is the y chromaticity coordinate.
+****
+
+slink:XrXYColorSONY represents CIE 1931 xy chromaticity coordinates.
+
+include::{generated}/validity/structs/XrXYColorSONY.adoc[]
+--
+
+include::{generated}/interfaces/XR_SONY_hdr_metadata.adoc[leveloffset=1]
+
+==== Issues
+
+==== Version History
+
+* Revision 1, 2026-02-10 (Kota Suzuki)
+** Initial draft

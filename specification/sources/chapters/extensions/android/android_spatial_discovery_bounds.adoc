@@ -220,7 +220,7 @@ XrSpatialDiscoverySnapshotCreateInfoEXT snapshotCreateInfo{
   .componentTypes = snapshotComponents.data(),
 };
 
-XrFutureEXT future = XR_NULL_FUTURE_EXT;
+XrFutureEXT future {XR_NULL_FUTURE_EXT};
 CHK_XR(xrCreateSpatialDiscoverySnapshotAsyncEXT(spatialContext, &snapshotCreateInfo, &future));
 ----
 

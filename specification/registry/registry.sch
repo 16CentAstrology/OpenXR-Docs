@@ -484,6 +484,7 @@
             <!-- TODO: Temporary exceptions - these should be fixed to have proper parentstruct/structextends -->
             <sch:let name="is_temporary_exception" value="$struct_name = (
                 'XrDevicePcmSampleRateStateFB',
+                'XrSpatialContainerInfoEXT',
                 'XrTrackableImageConfigurationANDROID'
             )"/>
 
@@ -853,11 +854,15 @@
             <sch:let name="struct_name" value="current()/../@name"/>
             <sch:let name="member_name" value="current()/name/text()"/>
             <sch:let name="sized_members" value="current()/../member[some $len in tokenize(@len, ',') satisfies $len = $member_name]"/>
-            <sch:assert test="$sized_members/name/text() = 'buffer' or not($sized_members)">
-                <sch:value-of select="$struct_name"/>::<sch:value-of select="$member_name"/>: This member includes the word "size", but bounds the size of a field not called buffer (<sch:value-of select="$sized_members/name/text()"/>). Either rename the length field to use Count instead of Size, or rename the array to buffer if it is a buffer of bytes/characters.
-            </sch:assert>
-        </sch:rule>
 
+            <sch:let name="basename" value="replace($member_name, 'Size', '')" />
+
+            <!-- For a size element, multiple sized buffers who have the same prefix as the size element are allowed, though camelcase is not strictly checked here. -->
+            <sch:assert test="not($sized_members) or (every $array in $sized_members/name/text() satisfies ends-with(lower-case($array), lower-case($basename)))">
+                <sch:value-of select="$struct_name" />::<sch:value-of select="$member_name" />: This member includes the word "Size", but bounds the size of one or more fields that do not end with the size member's prefix "<sch:value-of select="$basename" />" (<sch:value-of select="$sized_members/name/text()" />). Either rename the length field to use Count instead of Size, or rename the arrays to end with "<sch:value-of select="$basename" />".
+            </sch:assert>
+
+        </sch:rule>
     </sch:pattern>
 
 

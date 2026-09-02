@@ -1,0 +1,1123 @@
+// Copyright (c) 2017-2026 The Khronos Group Inc.
+//
+// SPDX-License-Identifier: CC-BY-4.0
+
+include::{generated}/meta/XR_EXT_spatial_image_tracking.adoc[]
+
+*Contributors*::
+    Daniel Guttenberg, Qualcomm +
+    Markus Birkner, Qualcomm +
+    Maximilian Mayer, Qualcomm +
+    Nihav Jain, Google +
+    Jared Finder, Google +
+    Zhipeng Liu, ByteDance
+
+==== Overview
+
+This extension provides the image tracking capability for the
+<<XR_EXT_spatial_entity>> extension.
+It enables applications to detect and track specific planar images as
+specified by sets of input reference images.
+
+A tracked image is represented as a spatial entity with (or "that has") the
+following components:
+
+* ename:XR_SPATIAL_COMPONENT_TYPE_IMAGE_2D_EXT
+* ename:XR_SPATIAL_COMPONENT_TYPE_BOUNDED_2D_EXT
+
+Applications typically use the spatial image tracking extension in the
+following pattern:
+
+* An application first creates one or many
+  slink:XrSpatialImageTrackingDatabaseEXT handles based on sets of preloaded
+  reference image data.
+
+* The application then creates an slink:XrSpatialContextEXT handle based on
+  the slink:XrSpatialImageTrackingDatabaseEXT handles created previously.
+
+* The application then releases the reference image data to reduce its
+  memory consumption.
+
+* The application discovers and queries images according to the spatial
+  entity access patterns.
+
+* The application can: load additional sets of reference images and create
+  additional slink:XrSpatialImageTrackingDatabaseEXT and subsequently
+  slink:XrSpatialContextEXT from them to extend the set of detectable and
+  trackable images dynamically at runtime.
+
+* The application can: destroy slink:XrSpatialImageTrackingDatabaseEXT
+  handles to reduce the set of detectable and trackable images dynamically
+  at runtime.
+
+* The application can: destroy slink:XrSpatialContextEXT handles to reduce
+  the set of detectable and trackable images dynamically at runtime.
+
+==== Runtime Support
+
+A runtime must: advertise its support for the image tracking capability
+using flink:xrEnumerateSpatialCapabilitiesEXT by listing the following
+capability:
+
+* ename:XR_SPATIAL_CAPABILITY_IMAGE_TRACKING_EXT
+
+==== Configuration
+
+To enable detection and tracking of planar images, the application can: pass
+slink:XrSpatialCapabilityConfigurationImageTrackingEXT structures in
+slink:XrSpatialContextCreateInfoEXT::pname:capabilityConfigs when calling
+the flink:xrCreateSpatialContextAsyncEXT function, and passing arrays of
+slink:XrSpatialImageTrackingDatabaseEXT structures in each
+slink:XrSpatialCapabilityConfigurationImageTrackingEXT::pname:imageTrackingDatabases.
+
+==== Input Image Set Creation
+
+To specify the reference images to be detected and tracked, the application
+must: create at least one set of input reference images.
+A set of input reference images is represented by an
+slink:XrSpatialImageTrackingDatabaseEXT handle and contains at least one
+image.
+
+[open,refpage='XrSpatialImageTrackingDatabaseEXT',type='handles',desc='Represents a spatial image tracking database.']
+--
+include::{generated}/api/handles/XrSpatialImageTrackingDatabaseEXT.adoc[]
+
+The slink:XrSpatialImageTrackingDatabaseEXT handle represents the resources
+for discovering and updating some number of spatial images in the
+environment of the user.
+Applications can: use this handle to discover and update spatial images
+using other functions in this extension.
+--
+
+===== Create the Spatial Image Tracking Database
+
+[open,refpage='xrCreateSpatialImageTrackingDatabaseAsyncEXT',type='protos',desc='Create a spatial image tracking database handle.',xrefs='XrSpatialImageTrackingDatabaseCreateInfoEXT xrCreateSpatialImageTrackingDatabaseCompleteEXT XrSpatialImageTrackingDatabaseEXT xrDestroySpatialImageTrackingDatabaseEXT']
+--
+The flink:xrCreateSpatialImageTrackingDatabaseAsyncEXT function is defined
+as:
+
+include::{generated}/api/protos/xrCreateSpatialImageTrackingDatabaseAsyncEXT.adoc[]
+
+.Parameter Descriptions
+****
+* pname:session is an slink:XrSession in which the spatial image tracking
+  database will be active.
+* pname:createInfo is the slink:XrSpatialImageTrackingDatabaseCreateInfoEXT
+  used to specify the spatial image tracking database parameters.
+* pname:future is a pointer to an basetype:XrFutureEXT.
+****
+
+An application can: create an slink:XrSpatialImageTrackingDatabaseEXT handle
+using the flink:xrCreateSpatialImageTrackingDatabaseAsyncEXT function and
+configure the sets of input reference images of the image tracking database
+with pname:createInfo.
+
+The runtime must: return ename:XR_ERROR_SPATIAL_IMAGE_FORMAT_UNSUPPORTED_EXT
+if the slink:XrSpatialReferenceImageEXT::pname:format of any of the input
+reference images is not enumerated by
+flink:xrEnumerateSpatialReferenceImageFormatsEXT.
+
+The runtime must: return ename:XR_ERROR_SPATIAL_IMAGE_INVALID_EXT if the
+slink:XrSpatialReferenceImageEXT::pname:planes array of any of the input
+reference images fails to be evaluated according to the reference image
+metadata of slink:XrSpatialReferenceImageEXT.
+
+The runtime must: return ename:XR_ERROR_SPATIAL_IMAGE_INVALID_EXT if the
+slink:XrSpatialReferenceImageEXT::pname:planes array of any of the input
+reference images does not provide exactly as many planes as the
+slink:XrSpatialReferenceImageEXT::pname:format has color channels.
+
+If a runtime enforces a permission system to control application access to
+the image tracking capability, then the runtime must: return
+ename:XR_ERROR_PERMISSION_INSUFFICIENT if those permissions have not been
+granted to this application.
+
+This function starts an asynchronous operation and creates a corresponding
+basetype:XrFutureEXT, usable with flink:xrPollFutureEXT and related
+functions.
+The return value of this function only indicates whether the parameters were
+acceptable to schedule the asynchronous operation.
+The corresponding completion function is
+flink:xrCreateSpatialImageTrackingDatabaseCompleteEXT, usable when a future
+from this function is in the <<XrFutureStateEXT,READY>> state, with outputs
+populated by that function in the completion structure
+slink:XrCreateSpatialImageTrackingDatabaseCompletionEXT.
+
+include::{generated}/validity/protos/xrCreateSpatialImageTrackingDatabaseAsyncEXT.adoc[]
+--
+
+[open,refpage='XrSpatialImageTrackingDatabaseCreateInfoEXT',type='structs',desc='Information to create a spatial image tracking database handle',xrefs='xrCreateSpatialImageTrackingDatabaseAsyncEXT']
+--
+The slink:XrSpatialImageTrackingDatabaseCreateInfoEXT structure is defined
+as:
+
+include::{generated}/api/structs/XrSpatialImageTrackingDatabaseCreateInfoEXT.adoc[]
+
+.Member Descriptions
+****
+* pname:type is the elink:XrStructureType of this structure.
+* pname:next is code:NULL or a pointer to the next structure in a structure
+  chain.
+* pname:spatialReferenceImageCount is the number of elements in the
+  pname:spatialReferenceImages array.
+* pname:spatialReferenceImages is an array of
+  slink:XrSpatialReferenceImageEXT.
+****
+
+The slink:XrSpatialImageTrackingDatabaseCreateInfoEXT structure describes
+the information to create an slink:XrSpatialImageTrackingDatabaseEXT handle.
+
+Each slink:XrSpatialImageTrackingDatabaseEXT must: be created with at least
+one slink:XrSpatialReferenceImageEXT in the
+slink:XrSpatialImageTrackingDatabaseCreateInfoEXT::pname:spatialReferenceImages
+array.
+
+include::{generated}/validity/structs/XrSpatialImageTrackingDatabaseCreateInfoEXT.adoc[]
+--
+
+[open,refpage='xrCreateSpatialImageTrackingDatabaseCompleteEXT',type='protos',desc='Complete the spatial image tracking database creation async request',xrefs='xrCreateSpatialImageTrackingDatabaseAsyncEXT XrSpatialImageTrackingDatabaseEXT']
+--
+The flink:xrCreateSpatialImageTrackingDatabaseCompleteEXT function is
+defined as:
+
+include::{generated}/api/protos/xrCreateSpatialImageTrackingDatabaseCompleteEXT.adoc[]
+
+.Parameter Descriptions
+****
+* pname:session is the slink:XrSession previously passed to
+  flink:xrCreateSpatialContextAsyncEXT::pname:session.
+* pname:future is the basetype:XrFutureEXT received from
+  flink:xrCreateSpatialContextAsyncEXT.
+* pname:completion is a pointer to an
+  slink:XrCreateSpatialImageTrackingDatabaseCompletionEXT.
+****
+
+flink:xrCreateSpatialImageTrackingDatabaseCompleteEXT completes the
+asynchronous operation started by
+flink:xrCreateSpatialImageTrackingDatabaseAsyncEXT.
+
+The runtime must: not access any
+slink:XrSpatialReferenceImagePlaneEXT::pname:buffer pointers that were
+provided by the
+slink:XrSpatialImageTrackingDatabaseCreateInfoEXT::pname:spatialReferenceImages
+input array for this flink:xrCreateSpatialImageTrackingDatabaseAsyncEXT call
+after it has been completed.
+The application may: free any
+slink:XrSpatialReferenceImagePlaneEXT::pname:buffer data after the
+flink:xrCreateSpatialImageTrackingDatabaseAsyncEXT has been completed to
+reduce it memory footprint.
+
+The runtime must: return ename:XR_ERROR_FUTURE_PENDING_EXT if pname:future
+is not in ready state.
+The runtime must: return ename:XR_ERROR_FUTURE_INVALID_EXT if pname:future
+has already been completed or cancelled.
+
+include::{generated}/validity/protos/xrCreateSpatialImageTrackingDatabaseCompleteEXT.adoc[]
+--
+
+[open,refpage='XrCreateSpatialImageTrackingDatabaseCompletionEXT',type='structs',desc='Completion struct to retrieve the spatial image tracking database handle.',xrefs='xrCreateSpatialImageTrackingDatabaseCompleteEXT xrCreateSpatialImageTrackingDatabaseAsyncEXT']
+--
+The slink:XrCreateSpatialImageTrackingDatabaseCompletionEXT structure is
+defined as:
+
+include::{generated}/api/structs/XrCreateSpatialImageTrackingDatabaseCompletionEXT.adoc[]
+
+.Member Descriptions
+****
+* pname:type is the elink:XrStructureType of this structure.
+* pname:next is code:NULL or a pointer to the next structure in a structure
+  chain.
+* pname:futureResult is the elink:XrResult of the spatial image tracking
+  database creation operation.
+* pname:database is an slink:XrSpatialImageTrackingDatabaseEXT created using
+  the data and configuration in
+  flink:xrCreateSpatialImageTrackingDatabaseAsyncEXT::pname:createInfo.
+****
+
+.Future Return Codes
+****
+pname:futureResult values:
+
+<<fundamentals-successcodes,Success>>::
+* ename:XR_SUCCESS
+* ename:XR_SESSION_LOSS_PENDING
+
+<<fundamentals-errorcodes,Failure>>::
+* ename:XR_ERROR_RUNTIME_FAILURE
+* ename:XR_ERROR_INSTANCE_LOST
+* ename:XR_ERROR_SESSION_LOST
+* ename:XR_ERROR_OUT_OF_MEMORY
+* ename:XR_ERROR_LIMIT_REACHED
+* ename:XR_ERROR_SPATIAL_IMAGE_FORMAT_UNSUPPORTED_EXT
+* ename:XR_ERROR_SPATIAL_IMAGE_INVALID_EXT
+****
+
+If pname:futureResult is a success code, pname:database must: be a valid
+handle.
+If pname:database is valid, it remains so only within the lifecycle of
+flink:xrCreateSpatialImageTrackingDatabaseAsyncEXT::pname:session or until
+the application destroys the pname:database with
+flink:xrDestroySpatialImageTrackingDatabaseEXT, whichever comes first.
+
+include::{generated}/validity/structs/XrCreateSpatialImageTrackingDatabaseCompletionEXT.adoc[]
+--
+
+===== Destroy the Spatial Image Tracking Database
+
+[open,refpage='xrDestroySpatialImageTrackingDatabaseEXT',type='protos',desc='Destroy a spatial image tracking database handle',xrefs='xrCreateSpatialImageTrackingDatabaseAsyncEXT XrSpatialImageTrackingDatabaseEXT']
+--
+The flink:xrDestroySpatialImageTrackingDatabaseEXT function is defined as:
+
+include::{generated}/api/protos/xrDestroySpatialImageTrackingDatabaseEXT.adoc[]
+
+.Parameter Descriptions
+****
+* pname:database is an slink:XrSpatialImageTrackingDatabaseEXT previously
+  created by flink:xrCreateSpatialImageTrackingDatabaseAsyncEXT.
+****
+
+The application can: call the flink:xrDestroySpatialImageTrackingDatabaseEXT
+function to release the pname:database handle and the underlying resources
+when finished with spatial image discovery and update tasks.
+
+The application can: call the flink:xrDestroySpatialImageTrackingDatabaseEXT
+function before calling flink:xrDestroySpatialContextEXT.
+The runtime must: no longer report images managed by this destroyed
+slink:XrSpatialImageTrackingDatabaseEXT.
+The runtime must: continue to report images managed by other databases.
+
+The runtime must: ensure that discovery snapshots returned by
+flink:xrCreateSpatialDiscoverySnapshotCompleteEXT do not contain images
+pertaining to destroyed or otherwise invalid
+slink:XrSpatialImageTrackingDatabaseEXT handles, even if the handle was
+destroyed after the application called
+flink:xrCreateSpatialDiscoverySnapshotAsyncEXT.
+Given that the data in a spatial snapshot is immutable, the application
+should: destroy any slink:XrSpatialSnapshotEXT handles that were created
+before it destroys pname:database, otherwise the application may: receive
+invalid slink:XrSpatialImageTrackingDatabaseEXT handles when using
+flink:xrQuerySpatialComponentDataEXT.
+
+The application can: call the flink:xrDestroySpatialContextEXT function to
+release the slink:XrSpatialContextEXT handle before destroying any of the
+slink:XrSpatialImageTrackingDatabaseEXT handles that
+slink:XrSpatialContextEXT was created with.
+The runtime must: not implicitly destroy these
+slink:XrSpatialImageTrackingDatabaseEXT handles when the
+slink:XrSpatialContextEXT is destroyed.
+
+Managing the lifetime of slink:XrSpatialContextEXT and
+slink:XrSpatialImageTrackingDatabaseEXT independently enables applications
+to reuse previously created slink:XrSpatialImageTrackingDatabaseEXT handles
+without needing to re-perform the costly creation procedure.
+
+For example, destroying an slink:XrSpatialContextEXT and subsequently
+recreating another slink:XrSpatialContextEXT with the same
+slink:XrSpatialImageTrackingDatabaseEXT enables pausing and resuming image
+tracking without needing to perform another initialization procedure.
+
+include::{generated}/validity/protos/xrDestroySpatialImageTrackingDatabaseEXT.adoc[]
+--
+
+[[ext_spatial_image_formats]]
+===== Input Image Format Support
+
+Applications should: call flink:xrEnumerateSpatialReferenceImageFormatsEXT
+to get the list of supported input reference image formats.
+
+[open,refpage='xrEnumerateSpatialReferenceImageFormatsEXT',type='protos',desc='Enumerate supported input reference image formats.',xrefs='XrSpatialReferenceImageFormatEXT']
+--
+The flink:xrEnumerateSpatialReferenceImageFormatsEXT function is defined as:
+
+include::{generated}/api/protos/xrEnumerateSpatialReferenceImageFormatsEXT.adoc[]
+
+.Parameter Descriptions
+****
+* pname:instance is a handle to an slink:XrInstance.
+* pname:systemId is the basetype:XrSystemId whose input reference image
+  formats will be enumerated.
+* pname:capability is the elink:XrSpatialCapabilityEXT for which the input
+  reference image formats will be enumerated.
+* pname:formatCapacityInput is the capacity of the pname:formats array, or 0
+  to indicate a request to retrieve the required capacity.
+* pname:formatCountOutput is the number of formats, or the required capacity
+  in the case that pname:formatCapacityInput is insufficient.
+* pname:formats is an array of elink:XrSpatialReferenceImageFormatEXT.
+  It can: be code:NULL if pname:formatCapacityInput is 0.
+* See the <<fundamentals-buffer-size-parameters>> section for a detailed
+  description of retrieving the required pname:formats size.
+****
+
+The application can: enumerate the list of input reference image formats
+supported by a given basetype:XrSystemId for a given
+elink:XrSpatialCapabilityEXT using
+flink:xrEnumerateSpatialReferenceImageFormatsEXT.
+
+The runtime must: not enumerate the formats of extensions that are not
+enabled for pname:instance.
+
+include::{generated}/validity/protos/xrEnumerateSpatialReferenceImageFormatsEXT.adoc[]
+--
+
+See elink:XrSpatialReferenceImageFormatEXT for a complete list of all
+reference image formats supported by any extension.
+
+[open,refpage='XrSpatialReferenceImageFormatEXT',type='enums',desc='Input reference image formats.',xrefs='xrEnumerateSpatialReferenceImageFormatsEXT']
+--
+include::{generated}/api/enums/XrSpatialReferenceImageFormatEXT.adoc[]
+
+The elink:XrSpatialReferenceImageFormatEXT enumeration identifies the input
+reference image formats that the runtime may: support.
+
+At least the ename:XR_SPATIAL_REFERENCE_IMAGE_FORMAT_RGBA_8888_EXT value and
+ename:XR_SPATIAL_REFERENCE_IMAGE_FORMAT_RGB_888_EXT value must: be
+supported.
+
+The enumerants have the following meaning:
+
+include::{generated}/api/enums/XrSpatialReferenceImageFormatEXT.comments-box.adoc[]
+--
+
+[[ext_spatial_image_tracking_settings]]
+==== Spatial Image Tracking Settings
+
+This extension provides optional structures that the application can: use to
+configure the image tracking capability with.
+
+===== Static Image Optimization
+
+[open,refpage='XrSpatialImageStaticOptimizationEXT',type='structs',desc='Provide information that images do not move.',xrefs='XrSpatialReferenceImageEXT XrSpatialImageTrackingDatabaseCreateInfoEXT']
+--
+The slink:XrSpatialImageStaticOptimizationEXT structure is defined as:
+
+include::{generated}/api/structs/XrSpatialImageStaticOptimizationEXT.adoc[]
+
+.Member Descriptions
+****
+* pname:type is the elink:XrStructureType of this structure.
+* pname:next is code:NULL or a pointer to the next structure in a structure
+  chain.
+* pname:optimizeForStaticImage is an basetype:XrBool32 that indicates
+  whether images move or not.
+  A value of ename:XR_TRUE indicates that images do not move.
+****
+
+If ename:XR_SPATIAL_CAPABILITY_FEATURE_IMAGE_TRACKING_STATIC_IMAGES_EXT is
+enumerated by flink:xrEnumerateSpatialCapabilityFeaturesEXT for the
+ename:XR_SPATIAL_CAPABILITY_IMAGE_TRACKING_EXT capability, the application
+can: chain slink:XrSpatialImageStaticOptimizationEXT to the
+slink:XrSpatialImageTrackingDatabaseCreateInfoEXT::pname:next chain, or
+slink:XrSpatialReferenceImageEXT::pname:next.
+
+If the application chains slink:XrSpatialImageStaticOptimizationEXT to the
+slink:XrSpatialImageTrackingDatabaseCreateInfoEXT structure, the runtime
+must: assume that all images of that slink:XrSpatialImageTrackingDatabaseEXT
+are static if pname:optimizeForStaticImage is set to ename:XR_TRUE.
+Correspondingly, the runtime must: assume that all images of that
+slink:XrSpatialImageTrackingDatabaseEXT are not static if
+pname:optimizeForStaticImage is set to ename:XR_FALSE.
+
+If application chains slink:XrSpatialImageStaticOptimizationEXT to the
+slink:XrSpatialReferenceImageEXT structure, the runtime must: assume that
+this reference image is static if pname:optimizeForStaticImage is set to
+ename:XR_TRUE.
+Correspondingly, the runtime must: assume that this reference image is not
+static if pname:optimizeForStaticImage is set to ename:XR_FALSE.
+Chaining the slink:XrSpatialImageStaticOptimizationEXT structure to the
+slink:XrSpatialReferenceImageEXT structure takes precedence over chaining it
+to the slink:XrSpatialImageTrackingDatabaseCreateInfoEXT structure.
+
+If ename:XR_SPATIAL_CAPABILITY_FEATURE_IMAGE_TRACKING_STATIC_IMAGES_EXT is
+not enumerated by flink:xrEnumerateSpatialCapabilityFeaturesEXT for the
+ename:XR_SPATIAL_CAPABILITY_IMAGE_TRACKING_EXT capability and the
+application chains an slink:XrSpatialImageStaticOptimizationEXT structure to
+any of the applicable next chains the runtime must: return
+ename:XR_ERROR_VALIDATION_FAILURE from
+flink:xrCreateSpatialImageTrackingDatabaseAsyncEXT.
+
+This may: allow the runtime to generate a more accurate pose and size.
+
+This may: allow the runtime to reduce power consumption.
+
+include::{generated}/validity/structs/XrSpatialImageStaticOptimizationEXT.adoc[]
+--
+
+===== Reference Image Width
+
+[open,refpage='XrSpatialImageSizeEXT',type='structs',desc='Provide expected image size to runtime.',xrefs='XrSpatialReferenceImageEXT XrSpatialImageTrackingDatabaseCreateInfoEXT']
+--
+The slink:XrSpatialImageSizeEXT structure is defined as:
+
+include::{generated}/api/structs/XrSpatialImageSizeEXT.adoc[]
+
+.Member Descriptions
+****
+* pname:type is the elink:XrStructureType of this structure.
+* pname:next is code:NULL or a pointer to the next structure in a structure
+  chain.
+* pname:physicalWidth is a code:float value representing the physical width
+  in meters to set.
+****
+
+If ename:XR_SPATIAL_CAPABILITY_FEATURE_IMAGE_TRACKING_FIXED_SIZE_IMAGES_EXT
+is enumerated by flink:xrEnumerateSpatialCapabilityFeaturesEXT for the
+ename:XR_SPATIAL_CAPABILITY_IMAGE_TRACKING_EXT capability, the application
+can: chain slink:XrSpatialImageSizeEXT to
+slink:XrSpatialImageTrackingDatabaseCreateInfoEXT::pname:next or
+slink:XrSpatialReferenceImageEXT::pname:next.
+
+If the application chains slink:XrSpatialImageSizeEXT to the
+slink:XrSpatialImageTrackingDatabaseCreateInfoEXT structure, the runtime
+must: assume that all images of that slink:XrSpatialImageTrackingDatabaseEXT
+have a width of pname:physicalWidth meters and a height according to the
+aspect ratio as provided implicitly through
+slink:XrSpatialReferenceImageEXT::pname:width and
+slink:XrSpatialReferenceImageEXT::pname:height.
+
+If the application chains slink:XrSpatialImageSizeEXT to the
+slink:XrSpatialReferenceImageEXT structure, the runtime must: assume that
+this reference image has a width of pname:physicalWidth meters and a height
+according to the aspect ratio as provided implicitly through
+slink:XrSpatialReferenceImageEXT::pname:width and
+slink:XrSpatialReferenceImageEXT::pname:height.
+Chaining the slink:XrSpatialImageSizeEXT structure to the
+slink:XrSpatialReferenceImageEXT structure takes precedence over chaining it
+to the slink:XrSpatialImageTrackingDatabaseCreateInfoEXT structure.
+
+This may: allow the runtime to return a more accurate pose and size.
+
+The runtime must: enumerate either
+ename:XR_SPATIAL_CAPABILITY_FEATURE_IMAGE_TRACKING_FIXED_SIZE_IMAGES_EXT or
+ename:XR_SPATIAL_CAPABILITY_FEATURE_IMAGE_TRACKING_AUTOMATIC_SIZE_IMAGES_EXT
+or both.
+
+If
+ename:XR_SPATIAL_CAPABILITY_FEATURE_IMAGE_TRACKING_AUTOMATIC_SIZE_IMAGES_EXT
+is enumerated by flink:xrEnumerateSpatialCapabilityFeaturesEXT the runtime
+must: provide image sizes automatically for images for which the application
+did not provide any slink:XrSpatialImageSizeEXT structures as part of any of
+the applicable next chains.
+
+For the runtime to be able to generate images sizes automatically and
+accurately, certain device capabilities and prerequisites may: be required;
+i.e. stereo cameras, accurately calibrated camera extrinsic and intrinsic
+parameters.
+
+If
+ename:XR_SPATIAL_CAPABILITY_FEATURE_IMAGE_TRACKING_AUTOMATIC_SIZE_IMAGES_EXT
+is not enumerated by flink:xrEnumerateSpatialCapabilityFeaturesEXT the
+application must: link slink:XrSpatialImageSizeEXT structures into the
+applicable next chains such that all images have an explicit size provided
+for them, otherwise the runtime must: return
+ename:XR_ERROR_SPATIAL_IMAGE_SIZE_MISSING_EXT from
+flink:xrCreateSpatialImageTrackingDatabaseAsyncEXT.
+
+include::{generated}/validity/structs/XrSpatialImageSizeEXT.adoc[]
+--
+
+[open,refpage='XrSpatialCapabilityConfigurationImageTrackingEXT',type='structs',desc='Image tracking configuration.',xrefs='XrSpatialCapabilityConfigurationBaseHeaderEXT XrSpatialContextCreateInfoEXT xrCreateSpatialContextAsyncEXT']
+--
+The slink:XrSpatialCapabilityConfigurationImageTrackingEXT structure is
+defined as:
+
+include::{generated}/api/structs/XrSpatialCapabilityConfigurationImageTrackingEXT.adoc[]
+
+.Member Descriptions
+****
+* pname:type is the elink:XrStructureType of this structure.
+* pname:next is code:NULL or a pointer to the next structure in a structure
+  chain.
+* pname:capability is an elink:XrSpatialCapabilityEXT and must: be
+  ename:XR_SPATIAL_CAPABILITY_IMAGE_TRACKING_EXT.
+* pname:enabledComponentCount is an code:uint32_t that specifies the number
+  of elements in pname:enabledComponents.
+* pname:enabledComponents is an array of elink:XrSpatialComponentTypeEXT
+  that specifies the components to enable for this capability.
+* pname:imageTrackingDatabaseCount is an code:unint32_t that specifies the
+  number of elements in pname:imageTrackingDatabases.
+* pname:imageTrackingDatabases is an array of
+  slink:XrSpatialImageTrackingDatabaseEXT handles that specifies the image
+  tracking databases to enable for the spatial context.
+****
+
+If image tracking is supported, the runtime must: enable image tracking if
+an slink:XrSpatialCapabilityConfigurationImageTrackingEXT structure is
+passed in slink:XrSpatialContextCreateInfoEXT::pname:capabilityConfigs when
+calling flink:xrCreateSpatialContextAsyncEXT.
+
+The slink:XrSpatialCapabilityConfigurationImageTrackingEXT structure enables
+the application to discover the reference images represented by the
+slink:XrSpatialImageTrackingDatabaseEXT handles in
+pname:imageTrackingDatabases.
+
+The runtime must: return ename:XR_ERROR_SPATIAL_CAPABILITY_UNSUPPORTED_EXT
+if ename:XR_SPATIAL_CAPABILITY_IMAGE_TRACKING_EXT is not enumerated by
+flink:xrEnumerateSpatialCapabilitiesEXT.
+
+include::{generated}/validity/structs/XrSpatialCapabilityConfigurationImageTrackingEXT.adoc[]
+--
+
+[[ext_spatial_reference_image]]
+==== Spatial Reference Image
+
+[open,refpage='XrSpatialReferenceImagePlaneEXT',type='structs',desc='Information defining an individual plane of a reference image.',xrefs='XrSpatialReferenceImageEXT']
+--
+The slink:XrSpatialReferenceImagePlaneEXT structure is defined as:
+
+include::{generated}/api/structs/XrSpatialReferenceImagePlaneEXT.adoc[]
+
+.Parameter Descriptions
+****
+* pname:bufferSize is the size of the pname:buffer array.
+* pname:buffer is an array of code:uint8_t data representing the plane data.
+* pname:rowStride is the byte distance between two starting positions of
+  consecutive pixel data rows.
+* pname:pixelStride is the byte distance between two consecutive pixels.
+****
+
+The runtime must: access pname:buffer according to the patterns the
+pname:rowStride and pname:pixelStride parameters provide.
+
+The application must: set pname:rowStride and pname:pixelStride such that
+only meaningful pixels of this slink:XrSpatialReferenceImagePlaneEXT are
+extracted by the runtime.
+
+include::{generated}/validity/structs/XrSpatialReferenceImagePlaneEXT.adoc[]
+--
+
+[open,refpage='XrSpatialReferenceImageEXT',type='structs',desc='Information that defines an input reference image.',xrefs='xrCreateSpatialImageTrackingDatabaseAsyncEXT XrSpatialImageTrackingDatabaseCreateInfoEXT XrSpatialImageTrackingDatabaseEXT']
+--
+The slink:XrSpatialReferenceImageEXT structure is defined as:
+
+include::{generated}/api/structs/XrSpatialReferenceImageEXT.adoc[]
+
+.Parameter Descriptions
+****
+* pname:type is the elink:XrStructureType of this structure.
+* pname:next is code:NULL or a pointer to the next structure in a structure
+  chain.
+* pname:width is the pixel width of the reference image.
+* pname:height is the pixel height of the reference image.
+* pname:format is an elink:XrSpatialReferenceImageFormatEXT representing the
+  format of the image.
+* pname:planeCount is the number of elements in the pname:planes array.
+* pname:planes is an array of slink:XrSpatialReferenceImagePlaneEXT
+  structures representing the planes of the image data.
+****
+
+The application can: create one or more slink:XrSpatialReferenceImageEXT
+structures each representing a single input reference image to be passed
+into the flink:xrCreateSpatialImageTrackingDatabaseAsyncEXT function through
+slink:XrSpatialImageTrackingDatabaseCreateInfoEXT::pname:spatialReferenceImages
+when creating an slink:XrSpatialImageTrackingDatabaseEXT handle.
+
+The slink:XrSpatialReferenceImagePlaneEXT::pname:buffer data must: be
+supplied in a left-to-right and top-to-bottom pixel ordering by the
+application.
+
+The application must: provide an slink:XrSpatialReferenceImagePlaneEXT
+structure in the slink:XrSpatialReferenceImageEXT::pname:planes array for
+each color channel of the slink:XrSpatialReferenceImageEXT::pname:format.
+
+include::{generated}/validity/structs/XrSpatialReferenceImageEXT.adoc[]
+--
+
+[[ext_spatial_image_tracking_guaranteed_components]]
+==== Guaranteed Components
+
+A runtime that supports ename:XR_SPATIAL_CAPABILITY_IMAGE_TRACKING_EXT must:
+provide the following spatial components as guaranteed components of all
+entities discovered by those capabilities, and must: enumerate them in
+flink:xrEnumerateSpatialCapabilityComponentTypesEXT:
+
+* ename:XR_SPATIAL_COMPONENT_TYPE_IMAGE_2D_EXT
+* ename:XR_SPATIAL_COMPONENT_TYPE_BOUNDED_2D_EXT
+
+===== Image 2D Component
+
+====== Component List Struct to Query Data
+
+[open,refpage='XrSpatialComponentImage2DListEXT',type='structs',desc='List struct for the image 2D component.',xrefs='XrSpatialComponentTypeEXT xrQuerySpatialComponentDataEXT XrSpatialComponentDataQueryResultEXT XrSpatialImage2DDataEXT']
+--
+The slink:XrSpatialComponentImage2DListEXT structure is defined as:
+
+include::{generated}/api/structs/XrSpatialComponentImage2DListEXT.adoc[]
+
+.Parameter Descriptions
+****
+* pname:type is the elink:XrStructureType of this structure.
+* pname:next is code:NULL or a pointer to the next structure in a structure
+  chain.
+* pname:imageCount is the number of elements in the pname:images array.
+* pname:images is an array of slink:XrSpatialImage2DDataEXT.
+****
+
+The runtime must: return ename:XR_ERROR_VALIDATION_FAILURE from
+flink:xrQuerySpatialComponentDataEXT if
+slink:XrSpatialComponentImage2DListEXT is in the
+slink:XrSpatialComponentDataQueryResultEXT::pname:next chain, but
+ename:XR_SPATIAL_COMPONENT_TYPE_IMAGE_2D_EXT is not included in
+slink:XrSpatialComponentDataQueryConditionEXT::pname:componentTypes.
+
+The runtime must: return ename:XR_ERROR_SIZE_INSUFFICIENT from
+flink:xrQuerySpatialComponentDataEXT if pname:imageCount is less than
+slink:XrSpatialComponentDataQueryResultEXT::pname:entityIdCountOutput.
+
+include::{generated}/validity/structs/XrSpatialComponentImage2DListEXT.adoc[]
+--
+
+====== Component Data
+
+[open,refpage='XrSpatialImage2DDataEXT',type='structs',desc='Data provided by the spatial image tracking component.',xrefs='XrSpatialComponentImage2DListEXT']
+--
+The slink:XrSpatialImage2DDataEXT structure is defined as:
+
+include::{generated}/api/structs/XrSpatialImage2DDataEXT.adoc[]
+
+.Parameter Descriptions
+****
+* pname:imageTrackingDatabase is the slink:XrSpatialImageTrackingDatabaseEXT
+  that detected or tracked the image.
+* pname:referenceImageIndex is the index that maps into the
+  slink:XrSpatialImageTrackingDatabaseCreateInfoEXT::pname:spatialReferenceImages
+  array of input reference images that pname:imageTrackingDatabase was
+  created with.
+****
+
+The application can: use pname:imageTrackingDatabase to identify which
+previously created slink:XrSpatialImageTrackingDatabaseEXT contains the
+reference image of this slink:XrSpatialImage2DDataEXT structure.
+For that slink:XrSpatialImageTrackingDatabaseEXT, the application can: use
+pname:referenceImageIndex to identify the slink:XrSpatialReferenceImageEXT
+of this slink:XrSpatialImage2DDataEXT structure by matching it to the input
+order of
+slink:XrSpatialImageTrackingDatabaseCreateInfoEXT::pname:spatialReferenceImages
+array.
+
+The set of reference images defined by the set of all active databases
+should: not include duplicate images.
+Including duplicate images may: cause adverse discovery or tracking
+behavior; i.e. inconsistent or multiple indices being returned.
+
+include::{generated}/validity/structs/XrSpatialImage2DDataEXT.adoc[]
+--
+
+====== Configuration
+
+If ename:XR_SPATIAL_COMPONENT_TYPE_IMAGE_2D_EXT is enumerated in
+slink:XrSpatialCapabilityComponentTypesEXT::pname:componentTypes for some
+capability, the application can: enable it by including the enum value in
+the
+slink:XrSpatialCapabilityConfigurationBaseHeaderEXT::pname:enabledComponents
+list.
+This component does not require any special configuration to be included in
+the next chain of slink:XrSpatialCapabilityConfigurationBaseHeaderEXT.
+
+===== Bounded 2D Component
+
+The bounded 2D component provides the center and extents of the spatial
+image represented by the entity it is on.
+See <<ext_spatial_entity_bounded2D_component>> for more details about the
+bounded 2D component.
+
+==== Example Code
+
+===== Discover Spatial Images & Query Component Data
+
+The following example code demonstrates how to discover spatial entities for
+the image tracking capability and query its component data.
+
+[source,cpp]
+----
+XrInstance instance; // Previously initialized
+XrSystemId systemId; // Previously initialized
+XrSession session; // Previously initialized
+XrSpace localSpace; // Previously initialized
+
+uint32_t capabilityCountOutput = 0;
+CHK_XR(xrEnumerateSpatialCapabilitiesEXT(instance, systemId, 0, &capabilityCountOutput, nullptr));
+std::vector<XrSpatialCapabilityEXT> capabilities(capabilityCountOutput);
+CHK_XR(xrEnumerateSpatialCapabilitiesEXT(instance, systemId, capabilities.size(), &capabilityCountOutput, capabilities.data()));
+
+if (std::find(capabilities.begin(), capabilities.end(), XR_SPATIAL_CAPABILITY_IMAGE_TRACKING_EXT) == capabilities.end()) {
+  // Image tracking not supported
+}
+
+XrSpatialCapabilityComponentTypesEXT imageTrackingComponents{
+  .type = XR_TYPE_SPATIAL_CAPABILITY_COMPONENT_TYPES_EXT,
+};
+CHK_XR(xrEnumerateSpatialCapabilityComponentTypesEXT(instance, systemId, XR_SPATIAL_CAPABILITY_IMAGE_TRACKING_EXT, &imageTrackingComponents));
+std::vector<XrSpatialComponentTypeEXT> imageTrackingCapabilityComponents(imageTrackingComponents.componentTypeCountOutput);
+imageTrackingComponents.componentTypes = imageTrackingCapabilityComponents.data();
+CHK_XR(xrEnumerateSpatialCapabilityComponentTypesEXT(instance, systemId, XR_SPATIAL_CAPABILITY_IMAGE_TRACKING_EXT, &imageTrackingComponents));
+
+if (std::find(imageTrackingCapabilityComponents.begin(), imageTrackingCapabilityComponents.end(), XR_SPATIAL_COMPONENT_TYPE_IMAGE_2D_EXT) == imageTrackingCapabilityComponents.end()) {
+  // The image2d component is not supported
+}
+
+uint32_t capabilityFeatureCountOutput = 0;
+CHK_XR(xrEnumerateSpatialCapabilityFeaturesEXT(instance, systemId, XR_SPATIAL_CAPABILITY_IMAGE_TRACKING_EXT, 0, &capabilityFeatureCountOutput, nullptr));
+std::vector<XrSpatialCapabilityFeatureEXT> capabilityFeatures(capabilityFeatureCountOutput);
+CHK_XR(xrEnumerateSpatialCapabilityFeaturesEXT(instance, systemId, XR_SPATIAL_CAPABILITY_IMAGE_TRACKING_EXT, capabilityFeatures.size(), &capabilityFeatureCountOutput, capabilityFeatures.data()));
+
+// Helper function to query optional feature support
+const auto supportsFeature = [&capabilityFeatures](XrSpatialCapabilityFeatureEXT feature) {
+  return std::find(capabilityFeatures.begin(), capabilityFeatures.end(), feature) != capabilityFeatures.end();
+};
+
+// supported state for optional features
+const bool supportsAutomaticScaleEstimation = supportsFeature(XR_SPATIAL_CAPABILITY_FEATURE_IMAGE_TRACKING_AUTOMATIC_SIZE_IMAGES_EXT);
+const bool supportsStaticImages = supportsFeature(XR_SPATIAL_CAPABILITY_FEATURE_IMAGE_TRACKING_STATIC_IMAGES_EXT);
+const bool supportsFixedSizeImages = supportsFeature(XR_SPATIAL_CAPABILITY_FEATURE_IMAGE_TRACKING_FIXED_SIZE_IMAGES_EXT);
+
+uint32_t formatCountOutput = 0;
+CHK_XR(xrEnumerateSpatialReferenceImageFormatsEXT(instance, systemId, XR_SPATIAL_CAPABILITY_IMAGE_TRACKING_EXT, 0, &formatCountOutput, nullptr));
+std::vector<XrSpatialReferenceImageFormatEXT> formats(formatCountOutput);
+CHK_XR(xrEnumerateSpatialReferenceImageFormatsEXT(instance, systemId, XR_SPATIAL_CAPABILITY_IMAGE_TRACKING_EXT, formats.size(), &formatCountOutput, formats.data()));
+
+if (std::find(formats.begin(), formats.end(), XR_SPATIAL_REFERENCE_IMAGE_FORMAT_RGBA_8888_EXT) == formats.end()) {
+  // The desired format is not supported
+}
+
+// Helper function to wait for XrFutureEXT completion
+auto waitUntilReady = [&](XrFutureEXT future) {
+  XrFuturePollInfoEXT pollInfo{
+    .type = XR_TYPE_FUTURE_POLL_INFO_EXT,
+    .future = future,
+  };
+  XrFuturePollResultEXT pollResult{
+    .type = XR_TYPE_FUTURE_POLL_RESULT_EXT,
+  };
+  do {
+    // sleep(1);
+    CHK_XR(xrPollFutureEXT(instance, &pollInfo, &pollResult));
+  } while (pollResult.state != XR_FUTURE_STATE_READY_EXT);
+};
+
+// Data/metadata about reference images (identifiers, 3D models, trigger functions, etc.)
+std::vector<std::string> referenceImageIdentifiers;
+
+XrSpatialImageTrackingDatabaseEXT imageTrackingDatabase{};
+{
+  uint32_t imgSize; // preloaded interleaved RGBA buffer size
+  uint8_t* img; // preloaded interleaved RGBA buffer data
+
+  // interleaved RGBA buffer memory layout and buffer positions
+
+  // first row of pixels
+  // img[0] | img[1] | img[2] | img[3] | img[0]+pStride | img[1]+pStride | ...
+  //  R0    |   G0   |   B0   |   A0   |       R1       |       G1       | ...
+
+  // second row of pixels
+  // img[0]+rStride | img[1]+rStride | img[2]+rStride | img[3]+rStride | img[0]+rStride+pStride | ...
+  //      R640      |      G640      |      B640      |      A640      |          R641          | ...
+
+  XrSpatialReferenceImagePlaneEXT spatialReferenceImagePlanes[4];
+
+  for (int i = 0; i < 4; ++i) { // for each plane (0=R, 1=G, 2=B, 3=A)
+    spatialReferenceImagePlanes[i].buffer = img + i; // set each plane buffer pointer to this channel's byte in the first pixel
+    spatialReferenceImagePlanes[i].bufferSize = imgSize - i; // adjust remaining buffer size according to offset applied
+    spatialReferenceImagePlanes[i].rowStride = 640 * 4; // set byte offset to start of next row for this plane
+    spatialReferenceImagePlanes[i].pixelStride = 4; // set byte offset to next pixel for this plane
+  }
+
+  XrSpatialReferenceImageEXT spatialReferenceImage{
+    .type = XR_TYPE_SPATIAL_REFERENCE_IMAGE_EXT,
+    .width = 640,
+    .height = 480,
+    .format = XR_SPATIAL_REFERENCE_IMAGE_FORMAT_RGBA_8888_EXT,
+    .planeCount = 4,
+    .planes = spatialReferenceImagePlanes,
+  };
+
+  referenceImageIdentifiers.emplace_back("MyReferenceImage");
+
+  // Helper function to append to the next chain
+  XrBaseOutStructure* appendTo = reinterpret_cast<XrBaseOutStructure*>(&spatialReferenceImage);
+  const auto appendToNextChain = [&appendTo](XrBaseOutStructure* toAppend) {
+    appendTo->next = toAppend;
+    appendTo = toAppend;
+  };
+
+  XrSpatialImageSizeEXT imageSize {
+    .type = XR_TYPE_SPATIAL_IMAGE_SIZE_EXT,
+    .physicalWidth = 0.1f,
+  };
+
+  if (!supportsAutomaticScaleEstimation) {
+    if (supportsFixedSizeImages) {
+      appendToNextChain(reinterpret_cast<XrBaseOutStructure*>(&imageSize));
+    }
+  }
+
+  XrSpatialImageStaticOptimizationEXT imageStaticOptimization{
+    .type = XR_TYPE_SPATIAL_IMAGE_STATIC_OPTIMIZATION_EXT,
+    .optimizeForStaticImage = XR_TRUE,
+  };
+
+  if (supportsStaticImages) {
+    appendToNextChain(reinterpret_cast<XrBaseOutStructure*>(&imageStaticOptimization));
+  }
+
+  XrSpatialImageTrackingDatabaseCreateInfoEXT spatialImageTrackingDatabaseCreateInfo {
+    .type = XR_TYPE_SPATIAL_IMAGE_TRACKING_DATABASE_CREATE_INFO_EXT,
+    .spatialReferenceImageCount = 1,
+    .spatialReferenceImages = &spatialReferenceImage,
+  };
+
+  XrFutureEXT createImageTrackingDatabaseFuture {XR_NULL_FUTURE_EXT};
+  CHK_XR(xrCreateSpatialImageTrackingDatabaseAsyncEXT(session, &spatialImageTrackingDatabaseCreateInfo, &createImageTrackingDatabaseFuture));
+
+  waitUntilReady(createImageTrackingDatabaseFuture);
+
+  XrCreateSpatialImageTrackingDatabaseCompletionEXT imageTrackingCompletion{
+    .type = XR_TYPE_CREATE_SPATIAL_IMAGE_TRACKING_DATABASE_COMPLETION_EXT,
+  };
+  CHK_XR(xrCreateSpatialImageTrackingDatabaseCompleteEXT(session, createImageTrackingDatabaseFuture, &imageTrackingCompletion));
+  if (imageTrackingCompletion.futureResult != XR_SUCCESS) {
+    // Error, image tracking database creation failed
+  }
+
+  imageTrackingDatabase = imageTrackingCompletion.database;
+}
+
+XrSpatialContextEXT spatialContext{};
+{
+  const std::array<XrSpatialComponentTypeEXT, 2> enabledComponents = {
+    XR_SPATIAL_COMPONENT_TYPE_BOUNDED_2D_EXT,
+    XR_SPATIAL_COMPONENT_TYPE_IMAGE_2D_EXT
+  };
+
+  // Configure the image tracking capability for the spatial context
+  XrSpatialCapabilityConfigurationImageTrackingEXT imageTrackingCapabilityConfig{
+    .type = XR_TYPE_SPATIAL_CAPABILITY_CONFIGURATION_IMAGE_TRACKING_EXT,
+    .capability = XR_SPATIAL_CAPABILITY_IMAGE_TRACKING_EXT,
+    .enabledComponentCount = enabledComponents.size(),
+    .enabledComponents = enabledComponents.data(),
+    .imageTrackingDatabaseCount = 1,
+    .imageTrackingDatabases = &imageTrackingDatabase,
+  };
+
+  std::vector<XrSpatialCapabilityConfigurationBaseHeaderEXT*> capabilityConfigs;
+  capabilityConfigs.push_back(reinterpret_cast<XrSpatialCapabilityConfigurationBaseHeaderEXT*>(&imageTrackingCapabilityConfig));
+
+  XrSpatialContextCreateInfoEXT spatialContextCreateInfo{
+    .type = XR_TYPE_SPATIAL_CONTEXT_CREATE_INFO_EXT,
+    .capabilityConfigCount = static_cast<uint32_t>(capabilityConfigs.size()),
+    .capabilityConfigs = capabilityConfigs.data(),
+  };
+
+  XrFutureEXT createContextFuture {XR_NULL_FUTURE_EXT};
+  CHK_XR(xrCreateSpatialContextAsyncEXT(session, &spatialContextCreateInfo, &createContextFuture));
+
+  waitUntilReady(createContextFuture);
+
+  XrCreateSpatialContextCompletionEXT completion{
+    .type = XR_TYPE_CREATE_SPATIAL_CONTEXT_COMPLETION_EXT,
+  };
+  CHK_XR(xrCreateSpatialContextCompleteEXT(session, createContextFuture, &completion));
+  if (completion.futureResult != XR_SUCCESS) {
+    // Error, spatial context creation failed
+  }
+
+  spatialContext = completion.spatialContext;
+}
+
+// Track entity handles for per-frame updates
+std::vector<XrSpatialEntityEXT> entityHandles;
+
+auto discoverSpatialEntities = [&](XrSpatialContextEXT spatialContext, XrTime time) {
+  // We want to look for entities that have the following components
+  std::array<XrSpatialComponentTypeEXT, 2> snapshotComponents {XR_SPATIAL_COMPONENT_TYPE_BOUNDED_2D_EXT, XR_SPATIAL_COMPONENT_TYPE_IMAGE_2D_EXT};
+
+  XrSpatialDiscoverySnapshotCreateInfoEXT snapshotCreateInfo{
+    .type = XR_TYPE_SPATIAL_DISCOVERY_SNAPSHOT_CREATE_INFO_EXT,
+    .componentTypeCount = snapshotComponents.size(),
+    .componentTypes = snapshotComponents.data(),
+  };
+  XrFutureEXT discoveryFuture {XR_NULL_FUTURE_EXT};
+  CHK_XR(xrCreateSpatialDiscoverySnapshotAsyncEXT(spatialContext, &snapshotCreateInfo, &discoveryFuture));
+
+  waitUntilReady(discoveryFuture);
+
+  XrCreateSpatialDiscoverySnapshotCompletionInfoEXT completionInfo{
+    .type = XR_TYPE_CREATE_SPATIAL_DISCOVERY_SNAPSHOT_COMPLETION_INFO_EXT,
+    .baseSpace = localSpace,
+    .time = time,
+    .future = discoveryFuture,
+  };
+
+  XrCreateSpatialDiscoverySnapshotCompletionEXT completion{
+    .type = XR_TYPE_CREATE_SPATIAL_DISCOVERY_SNAPSHOT_COMPLETION_EXT,
+  };
+  CHK_XR(xrCreateSpatialDiscoverySnapshotCompleteEXT(spatialContext, &completionInfo, &completion));
+  if (completion.futureResult == XR_SUCCESS) {
+    // Query for the bounded2d component data
+    XrSpatialComponentTypeEXT componentsToQuery[] = {XR_SPATIAL_COMPONENT_TYPE_BOUNDED_2D_EXT, XR_SPATIAL_COMPONENT_TYPE_IMAGE_2D_EXT};
+    XrSpatialComponentDataQueryConditionEXT queryCond{
+      .type = XR_TYPE_SPATIAL_COMPONENT_DATA_QUERY_CONDITION_EXT,
+      .componentTypeCount = 2,
+      .componentTypes = componentsToQuery,
+    };
+
+    XrSpatialComponentDataQueryResultEXT queryResult{
+      .type = XR_TYPE_SPATIAL_COMPONENT_DATA_QUERY_RESULT_EXT,
+    };
+    CHK_XR(xrQuerySpatialComponentDataEXT(completion.snapshot, &queryCond, &queryResult));
+
+    std::vector<XrSpatialEntityIdEXT> discoveredEntityIds(queryResult.entityIdCountOutput);
+    std::vector<XrSpatialEntityTrackingStateEXT> entityStates(queryResult.entityStateCountOutput);
+    queryResult.entityIdCapacityInput = discoveredEntityIds.size();
+    queryResult.entityIds = discoveredEntityIds.data();
+    queryResult.entityStateCapacityInput = entityStates.size();
+    queryResult.entityStates = entityStates.data();
+
+    std::vector<XrSpatialBounded2DDataEXT> bounded2d(queryResult.entityIdCountOutput);
+    std::vector<XrSpatialImage2DDataEXT> image2d(queryResult.entityIdCountOutput);
+
+    XrSpatialComponentImage2DListEXT imagesList{
+      .type = XR_TYPE_SPATIAL_COMPONENT_IMAGE_2D_LIST_EXT,
+      .imageCount = static_cast<uint32_t>(image2d.size()),
+      .images = image2d.data(),
+    };
+
+    XrSpatialComponentBounded2DListEXT boundsList{
+      .type = XR_TYPE_SPATIAL_COMPONENT_BOUNDED_2D_LIST_EXT,
+      .boundCount = static_cast<uint32_t>(bounded2d.size()),
+      .bounds = bounded2d.data(),
+    };
+
+    imagesList.next = &boundsList;
+    queryResult.next = &imagesList;
+
+    CHK_XR(xrQuerySpatialComponentDataEXT(completion.snapshot, &queryCond, &queryResult));
+
+    // Create entity handles for newly discovered entities
+    for (int32_t i = 0; i < queryResult.entityIdCountOutput; ++i) {
+      if (entityStates[i] == XR_SPATIAL_ENTITY_TRACKING_STATE_TRACKING_EXT) {
+        const XrSpatialImage2DDataEXT& currentImage2d = image2d[i];
+        const std::string& currentReferenceImageIdentifier = referenceImageIdentifiers[currentImage2d.referenceImageIndex];
+        std::cout << currentReferenceImageIdentifier << std::endl; // Outputs the "MyReferenceImage" string the app defined previously; could be any other associated data or action.
+
+        // Access bounded2d[i] for image bounds
+
+        // Create entity handle for this entity
+        XrSpatialEntityFromIdCreateInfoEXT createInfo{
+          .type = XR_TYPE_SPATIAL_ENTITY_FROM_ID_CREATE_INFO_EXT,
+          .entityId = discoveredEntityIds[i],
+        };
+        XrSpatialEntityEXT handle {XR_NULL_HANDLE};
+        CHK_XR(xrCreateSpatialEntityFromIdEXT(spatialContext, &createInfo, &handle));
+        entityHandles.push_back(handle);
+      }
+    }
+
+    CHK_XR(xrDestroySpatialSnapshotEXT(completion.snapshot));
+  }
+};
+
+while (1) {
+  // For every frame in frame loop
+
+  XrFrameState frameState;  // Previously returned from xrWaitFrame
+  const XrTime time = frameState.predictedDisplayTime;
+
+  // Poll for the XR_TYPE_EVENT_DATA_SPATIAL_DISCOVERY_RECOMMENDED_EXT event
+  XrEventDataBuffer event {
+    .type = XR_TYPE_EVENT_DATA_BUFFER,
+  };
+  XrResult result = xrPollEvent(instance, &event);
+  if (result == XR_SUCCESS) {
+    switch (event.type) {
+      case XR_TYPE_EVENT_DATA_SPATIAL_DISCOVERY_RECOMMENDED_EXT: {
+        const XrEventDataSpatialDiscoveryRecommendedEXT& eventdata = *reinterpret_cast<XrEventDataSpatialDiscoveryRecommendedEXT*>(&event);
+        // Discover spatial entities for the context that we received the "discovery
+        // recommended" event for
+        discoverSpatialEntities(eventdata.spatialContext, time);
+        break;
+      }
+    }
+  }
+
+  // Update existing entities every frame
+  if (!entityHandles.empty()) {
+    std::array<XrSpatialComponentTypeEXT, 2> componentsToUpdate = {
+      XR_SPATIAL_COMPONENT_TYPE_BOUNDED_2D_EXT,
+      XR_SPATIAL_COMPONENT_TYPE_IMAGE_2D_EXT
+    };
+
+    XrSpatialUpdateSnapshotCreateInfoEXT updateSnapshotCreateInfo {
+      .type = XR_TYPE_SPATIAL_UPDATE_SNAPSHOT_CREATE_INFO_EXT,
+      .entityCount = static_cast<uint32_t>(entityHandles.size()),
+      .entities = entityHandles.data(),
+      .componentTypeCount = static_cast<uint32_t>(componentsToUpdate.size()),
+      .componentTypes = componentsToUpdate.data(),
+      .baseSpace = localSpace,
+      .time = time,
+    };
+
+    XrSpatialSnapshotEXT updateSnapshot {XR_NULL_HANDLE};
+    CHK_XR(xrCreateSpatialUpdateSnapshotEXT(spatialContext, &updateSnapshotCreateInfo, &updateSnapshot));
+
+    // Query updated component data (same pattern as discovery)
+    XrSpatialComponentDataQueryConditionEXT queryCond{
+      .type = XR_TYPE_SPATIAL_COMPONENT_DATA_QUERY_CONDITION_EXT,
+      .componentTypeCount = static_cast<uint32_t>(componentsToUpdate.size()),
+      .componentTypes = componentsToUpdate.data(),
+    };
+
+    XrSpatialComponentDataQueryResultEXT queryResult{
+      .type = XR_TYPE_SPATIAL_COMPONENT_DATA_QUERY_RESULT_EXT,
+    };
+
+    std::vector<XrSpatialEntityIdEXT> updatedEntityIds(entityHandles.size());
+    std::vector<XrSpatialEntityTrackingStateEXT> entityStates(entityHandles.size());
+    queryResult.entityIdCapacityInput = updatedEntityIds.size();
+    queryResult.entityIds = updatedEntityIds.data();
+    queryResult.entityStateCapacityInput = entityStates.size();
+    queryResult.entityStates = entityStates.data();
+
+    std::vector<XrSpatialBounded2DDataEXT> bounded2d(entityHandles.size());
+    std::vector<XrSpatialImage2DDataEXT> image2d(entityHandles.size());
+
+    XrSpatialComponentImage2DListEXT imagesList{
+      .type = XR_TYPE_SPATIAL_COMPONENT_IMAGE_2D_LIST_EXT,
+      .imageCount = static_cast<uint32_t>(image2d.size()),
+      .images = image2d.data(),
+    };
+
+    XrSpatialComponentBounded2DListEXT boundsList{
+      .type = XR_TYPE_SPATIAL_COMPONENT_BOUNDED_2D_LIST_EXT,
+      .boundCount = static_cast<uint32_t>(bounded2d.size()),
+      .bounds = bounded2d.data(),
+    };
+
+    imagesList.next = &boundsList;
+    queryResult.next = &imagesList;
+
+    CHK_XR(xrQuerySpatialComponentDataEXT(updateSnapshot, &queryCond, &queryResult));
+    CHK_XR(xrDestroySpatialSnapshotEXT(updateSnapshot));
+  }
+
+  // Finish frame loop
+}
+
+// Clean up entity handles when no longer needed
+for (auto handle : entityHandles) {
+  CHK_XR(xrDestroySpatialEntityEXT(handle));
+}
+
+CHK_XR(xrDestroySpatialContextEXT(spatialContext));
+
+// Unload spatial image tracking resources internally
+CHK_XR(xrDestroySpatialImageTrackingDatabaseEXT(imageTrackingDatabase));
+----
+
+include::{generated}/interfaces/XR_EXT_spatial_image_tracking.adoc[leveloffset=1]
+
+==== Issues
+
+==== Version History
+
+* Revision 1, 2025-04-22 (Daniel Guttenberg, Qualcomm)
+** Initial extension description

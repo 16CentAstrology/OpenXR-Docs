@@ -535,7 +535,7 @@ XrTrackableImageDatabaseCreateInfoANDROID imageDatabaseCreateInfo {
   .entries = imageDatabaseEntries
 };
 
-XrFutureEXT imageDatabaseFuture;
+XrFutureEXT imageDatabaseFuture {XR_NULL_FUTURE_EXT};
 CHK_XR(xrCreateTrackableImageDatabaseAsyncANDROID(session, &imageDatabaseCreateInfo, &imageDatabaseFuture));
 
 bool keepLooping = true;
@@ -786,7 +786,7 @@ if (result == XR_SUCCESS) {
         .entries = imageDatabaseEntries
       };
 
-      XrFutureEXT imageDatabaseFuture;
+      XrFutureEXT imageDatabaseFuture {XR_NULL_FUTURE_EXT};
       CHK_XR(xrCreateTrackableImageDatabaseAsyncANDROID(session, &imageDatabaseCreateInfo, &imageDatabaseFuture));
 
       while (true) {

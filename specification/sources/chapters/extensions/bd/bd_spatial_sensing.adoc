@@ -525,6 +525,16 @@ The slink:XrSenseDataFilterSemanticBD contains a list of semantic labels.
 When the application passes this filter, the query result will only contain
 entities with semantic labels that appear in this list.
 
+[NOTE]
+.Note
+====
+A runtime implementing an earlier version of this extension will not
+recognize elink:XrSemanticLabelBD values introduced in a later extension
+version and therefore is unable to filter on such labels.
+If a label introduced in a later version of the extension than the runtime
+reports is passed in pname:labels, no corresponding data will be returned.
+====
+
 include::{generated}/validity/structs/XrSenseDataFilterSemanticBD.adoc[]
 --
 
@@ -1483,7 +1493,7 @@ typedef struct XrSpatialEntityComponentDataBarBD
 
 // Create data provider for spatial sensing capability foo
 XrSenseDataProviderBD fooProvider;
-XrFutureEXT providerCreateFuture;
+XrFutureEXT providerCreateFuture {XR_NULL_FUTURE_EXT};
 
 XrSenseDataProviderCreateInfoFooBD providerCreateInfoFoo {
     .type = XR_TYPE_SENSE_DATA_PROVIDER_CREATE_INFO_FOO_BD,
@@ -1543,7 +1553,7 @@ auto queryFooSpatialEntities = [&]()
 {
     XrSenseDataSnapshotBD querySnapshotHandle{XR_NULL_HANDLE};
 
-    XrFutureEXT queryFuture;
+    XrFutureEXT queryFuture {XR_NULL_FUTURE_EXT};
     XrSenseDataQueryInfoBD queryInfo {
         .type = XR_TYPE_SENSE_DATA_QUERY_INFO_BD,
     };
@@ -1873,3 +1883,7 @@ if (queriedSenseData.stateCountOutput > 0)
 * Revision 2, 2025-08-05 (Zijian Wang)
 
 ** Add the sphere component data struct
+
+* Revision 3, 2026-05-29 (Xu Yang)
+
+** Add new semantic label definitions for keyboard, mouse, and laptop

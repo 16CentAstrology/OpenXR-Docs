@@ -534,7 +534,7 @@ component data.
 
 [source,cpp]
 ----
-XrFutureEXT future = XR_NULL_FUTURE_EXT;
+XrFutureEXT future {XR_NULL_FUTURE_EXT};
 
 // We want to look for entities that have the following components.
 std::vector<XrSpatialComponentTypeEXT> snapshotComponents = {

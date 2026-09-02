@@ -23,6 +23,9 @@ SCOUR      := scour
 PNGQUANT   := pngquant
 ZOPFLIPNG  := zopflipng
 
+# used to use --crop but now we make the canvas the right size
+DRAWIO_ARGS :=
+
 SCOUR_ARGS := \
   --enable-id-stripping \
   --strip-xml-prolog \
@@ -30,7 +33,9 @@ SCOUR_ARGS := \
   --enable-comment-stripping \
   --no-line-breaks
 
-SVGO_ARGS  := --final-newline --multipass --config ../../config/svgo-config.mjs
+
+SVGO_CONFIG := ../../config/svgo-config.mjs
+SVGO_ARGS = --final-newline --multipass --config $(SVGO_CONFIG)
 
 OPTIPNG_FLAGS := -o2 -fix
 
@@ -103,7 +108,7 @@ endef
 define DRAWIO_PDF_RULE=
 	$(ECHO) "[drawio]    $< -> $@"
 	$(QUIET)$(MKDIR) "$(@D)"
-	$(QUIET)$(DRAWIO) --crop --export --output "$@" "$<"
+	$(QUIET)$(DRAWIO) $(DRAWIO_ARGS) --export --output "$@" "$<"
 endef
 
 define INKSCAPE_EXPORT_RULE=
@@ -115,26 +120,33 @@ endef
 # SVGs to remove drawio-exported warning text and optimize
 
 # These behave badly with Scour, so only use svgo.
+# These first ones also need to keep their foreign objects for their manually wrapped text.
+SVG_CLEANUP_WRAPPED_TEXT := \
+  originals/ext_spatial_container_session_state_machine.svg
 
 SVG_CLEANUP_SOURCES := \
   originals/hand_grip_pose.svg \
   originals/hand_pinch_orientation.svg \
   originals/hand_pinch_pose.svg \
   originals/hand_poke_pose.svg \
-  originals/xr_msft_scene_understanding_plane_coordinate_system.svg
-
+  originals/xr_msft_scene_understanding_plane_coordinate_system.svg \
+  $(SVG_CLEANUP_WRAPPED_TEXT)
 
 SVG_CLEANUP_DESTS := $(SVG_CLEANUP_SOURCES:originals/%=%)
+SVG_CLEANUP_WRAPPED_DESTS := $(SVG_CLEANUP_WRAPPED_TEXT:originals/%=%)
 SVG_CLEANUP_TEMP := $(SVG_CLEANUP_SOURCES:originals/%=$(CONVERSION_TEMP)/%)
 
 $(SVG_CLEANUP_TEMP): $(CONVERSION_TEMP)/%.svg : originals/%.svg
 	$(INKSCAPE_EXPORT_RULE)
 
-$(SVG_CLEANUP_TEMP): INKSCAPE_EXTRA_COMMANDS = select-by-selector:switch>a; delete; select-by-element:foreignObject; delete;
+$(SVG_CLEANUP_TEMP): INKSCAPE_EXTRA_COMMANDS = select-by-selector:switch>a; delete;
 CLEAN_FILES += $(SVG_CLEANUP_TEMP)
 
 $(SVG_CLEANUP_DESTS): %.svg: $(CONVERSION_TEMP)/%.svg
 	$(SVGO_RULE)
+
+# Do not replace fonts here
+$(SVG_CLEANUP_WRAPPED_DESTS): SVGO_CONFIG := ../../config/svgo-config-wrappedtext.mjs
 
 DEFAULT_OUTPUTS += $(SVG_CLEANUP_DESTS)
 
@@ -147,10 +159,12 @@ SVG_SOURCES := $(wildcard unoptimized/*.svg)
 SVG_DESTS := $(SVG_SOURCES:unoptimized/%=%)
 $(SVG_DESTS): %.svg: unoptimized/%.svg
 	$(SCOUR_SVGO_RULE)
+$(SVG_DESTS) :=  SVGO_CONFIG := ../../config/svgo-config-wrappedtext.mjs
 
 DEFAULT_OUTPUTS += $(SVG_DESTS)
 
 LICENSE_DESTS_FROM_UNOPTIMIZED += $(SVG_SOURCES:unoptimized/%=%.license)
+
 
 ###
 # PNGs that get resized
@@ -386,9 +400,13 @@ DEFAULT_OUTPUTS += $(LICENSE_DESTS_FROM_UNOPTIMIZED)
 ###
 # Export from drawio and optimize
 DRAWIO_SOURCES := \
+  originals/ext_future_lifecycle.drawio \
+  originals/ext_spatial_entity_query_snapshot_01.drawio \
+  originals/ext_spatial_entity_query_snapshot_02.drawio \
+  originals/ext_spatial_entity_query_snapshot_03.drawio \
+  originals/ext_spatial_entity_tracking_states.drawio \
   originals/fb_trimesh_states.drawio \
-  originals/lifecycle.drawio \
-  originals/ext_future_lifecycle.drawio
+  originals/lifecycle.drawio
 
 DRAWIO_PDF_TEMP = $(DRAWIO_SOURCES:originals/%.drawio=$(CONVERSION_TEMP)/%.pdf)
 DRAWIO_TEMPSVG_DESTS = $(DRAWIO_SOURCES:originals/%.drawio=$(CONVERSION_TEMP)/%.svg)
@@ -406,6 +424,8 @@ CLEAN_FILES += $(DRAWIO_TEMPSVG_DESTS)
 
 $(DRAWIO_SVG_DESTS): %.svg : $(CONVERSION_TEMP)/%.svg
 	$(SCOUR_SVGO_RULE)
+
+$(DRAWIO_SVG_DESTS): SVGO_CONFIG := ../../config/svgo-config-wrappedtext-noclip.mjs
 
 DEFAULT_OUTPUTS += $(DRAWIO_SVG_DESTS)
 
@@ -434,6 +454,9 @@ jpg: $(filter %.jpg,$(DEFAULT_OUTPUTS)) $(filter %.jpg.license,$(DEFAULT_OUTPUTS
 png: $(filter %.png,$(DEFAULT_OUTPUTS)) $(filter %.png.license,$(DEFAULT_OUTPUTS))
 .PHONY: png
 
+svg: $(filter %.svg,$(DEFAULT_OUTPUTS)) $(filter %.svg.license,$(DEFAULT_OUTPUTS))
+.PHONY: svg
+
 license: $(filter %.license,$(DEFAULT_OUTPUTS))
 .PHONY: license
 
@@ -452,3 +475,7 @@ clean-jpg:
 clean-png:
 	$(RM) $(filter %.png,$(DEFAULT_OUTPUTS))
 .PHONY: clean-png
+
+clean-svg:
+	$(RM) $(filter %.svg,$(DEFAULT_OUTPUTS)) $(SVG_CLEANUP_TEMP) $(DRAWIO_TEMPSVG_DESTS) $(DRAWIO_PDF_TEMP)
+.PHONY: clean-svg

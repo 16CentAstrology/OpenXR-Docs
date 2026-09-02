@@ -17,6 +17,94 @@ any public pull requests that have been accepted.
 This changelog only lists changes that affect the registry,
 headers, and/or specification text.
 
+## OpenXR Specification 1.1.63 (2026-09-01)
+
+This release adds two substantial ratified multi-vendor extensions,
+`XR_EXT_spatial_container` and `XR_EXT_spatial_container_self_rendering`, which
+together expand the scope of experiences possible with OpenXR. It also includes
+another ratified multi-vendor extension for spatial entity image tracking, as
+well as a small ratified Khronos extension to improve a developer convenience
+function. Several more single vendor extensions are also included, as well as a
+number of cleanups and improvements to the specification.
+
+- Specification
+  - New ratified multi-vendor extension specifications: `XR_EXT_spatial_container`,
+    `XR_EXT_spatial_container_self_rendering` to allow apps to switch between
+    immersive (full-screen) or bounded, allow multiple simultaneous apps, and
+    enable the system to control the position of each of the "containers" the apps
+    are in.
+    ([internal MR 3712](https://gitlab.khronos.org/openxr/openxr/merge_requests/3712),
+    [internal MR 4473](https://gitlab.khronos.org/openxr/openxr/merge_requests/4473))
+  - New ratified Khronos extension specification:
+    `XR_KHR_extended_result_name_lengths` adds a new variant of the
+    `xrResultToString()` function which supports `XrResult` name lengths of up to
+    256 characters.
+    ([internal MR 3964](https://gitlab.khronos.org/openxr/openxr/merge_requests/3964))
+  - New ratified multi-vendor extension specification: `XR_EXT_spatial_image_tracking`
+    provides tracking of images in the spatial entities framework.
+    ([internal MR 3805](https://gitlab.khronos.org/openxr/openxr/merge_requests/3805),
+    [internal MR 4473](https://gitlab.khronos.org/openxr/openxr/merge_requests/4473))
+  - New vendor extension specification: `XR_BD_spatial_light_estimation` provides
+    access to estimated environmental lighting through vendor spatial sensing
+    framework.
+    ([internal MR 3814](https://gitlab.khronos.org/openxr/openxr/merge_requests/3814))
+  - New vendor extension specification: `XR_BD_camera_image` provides access to
+    device camera images.
+    ([internal MR 4089](https://gitlab.khronos.org/openxr/openxr/merge_requests/4089),
+    [internal MR 4473](https://gitlab.khronos.org/openxr/openxr/merge_requests/4473))
+  - New vendor extension specification: `XR_SONY_hdr_metadata` allowing
+    applications to set HDR static metadata for a swapchain.
+    ([internal MR 4172](https://gitlab.khronos.org/openxr/openxr/merge_requests/4172))
+  - Fix: Resolve incorrect implicit valid usage extension requirements generated
+    for types/commands that are referenced by a lower-numbered extension before the
+    extension that actually introduces them is processed.
+    ([internal MR 4394](https://gitlab.khronos.org/openxr/openxr/merge_requests/4394),
+    [internal issue 2054](https://gitlab.khronos.org/openxr/openxr/issues/2054))
+  - Fix: Explicitly list the "x" and "y" thumbstick components on
+    "pico_g3_controller" in the spec text.
+    ([internal MR 4437](https://gitlab.khronos.org/openxr/openxr/merge_requests/4437))
+  - Fix: Explicitly list the "thumbstick" component on "pico_neo3_controller" and
+    "pico4_controller" in the spec text.
+    ([internal MR 4437](https://gitlab.khronos.org/openxr/openxr/merge_requests/4437))
+  - Fix: Typo in `XR_META_recommended_layer_resolution`.
+    ([internal MR 4461](https://gitlab.khronos.org/openxr/openxr/merge_requests/4461),
+    [internal issue 2424](https://gitlab.khronos.org/openxr/openxr/issues/2424),
+    [OpenXR-Docs issue 179](https://github.com/KhronosGroup/OpenXR-Docs/issues/179))
+  - Improvement: Add a check to `xml_consistency.py` that ensures all defined types
+    are either explicitly or implicitly included.
+    ([internal MR 2879](https://gitlab.khronos.org/openxr/openxr/merge_requests/2879))
+  - Improvement: Clean up and optimize SVG files embedded in the spec.
+    ([internal MR 4446](https://gitlab.khronos.org/openxr/openxr/merge_requests/4446))
+  - Improvement: More consistency changes in example code.
+    ([internal MR 4473](https://gitlab.khronos.org/openxr/openxr/merge_requests/4473))
+- Registry
+  - New ratified Khronos extension: `XR_KHR_extended_result_name_lengths`
+    ([internal MR 3964](https://gitlab.khronos.org/openxr/openxr/merge_requests/3964))
+  - New ratified multi-vendor extensions: `XR_EXT_spatial_container`,
+    `XR_EXT_spatial_container_self_rendering`
+    ([internal MR 3712](https://gitlab.khronos.org/openxr/openxr/merge_requests/3712),
+    [internal MR 4472](https://gitlab.khronos.org/openxr/openxr/merge_requests/4472))
+  - New multi-vendor extension: `XR_EXT_spatial_image_tracking`
+    ([internal MR 3805](https://gitlab.khronos.org/openxr/openxr/merge_requests/3805))
+  - New vendor extension: `XR_BD_spatial_light_estimation`
+    ([internal MR 3814](https://gitlab.khronos.org/openxr/openxr/merge_requests/3814))
+  - New vendor extension: `XR_BD_camera_image`
+    ([internal MR 4089](https://gitlab.khronos.org/openxr/openxr/merge_requests/4089))
+  - New vendor extension: `XR_SONY_hdr_metadata`
+    ([internal MR 4172](https://gitlab.khronos.org/openxr/openxr/merge_requests/4172))
+  - Change: Add new semantic definitions including keyboard, mouse, and laptop in
+    `XrSemanticLabelBD`.
+    ([internal MR 4221](https://gitlab.khronos.org/openxr/openxr/merge_requests/4221))
+  - Chore: Reserve extension numbers.
+    ([internal MR 4420](https://gitlab.khronos.org/openxr/openxr/merge_requests/4420),
+    [internal MR 4421](https://gitlab.khronos.org/openxr/openxr/merge_requests/4421))
+  - Fix: Missing comments for `XrResult` error codes added by
+    `XR_ANDROID_google_cloud_auth`, `XR_ANDROID_geospatial`, and
+    `XR_ANDROID_geospatial_anchor`.
+    ([internal MR 4438](https://gitlab.khronos.org/openxr/openxr/merge_requests/4438))
+  - Fix: Always output forward slashes in relative paths when merging registry.
+    ([internal MR 4451](https://gitlab.khronos.org/openxr/openxr/merge_requests/4451))
+
 ## OpenXR Specification 1.1.62 (2026-07-31)
 
 This release includes a new vendor extension, an important fix to several vendor

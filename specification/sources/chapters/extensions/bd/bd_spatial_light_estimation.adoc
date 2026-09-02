@@ -1,0 +1,721 @@
+// Copyright (c) 2024 Bytedance
+//
+// SPDX-License-Identifier: CC-BY-4.0
+
+include::{generated}/meta/XR_BD_spatial_light_estimation.adoc[]
+
+*Last Modified Date*::
+    2025-09-19
+
+*IP Status*::
+    No known IP claims.
+
+*Contributors*::
+    Zhao Li, ByteDance +
+    Zhipeng Liu, ByteDance +
+    Shuai Liu, ByteDance +
+    Jin Xin, ByteDance +
+    Tom Zhai, ByteDance +
+    Xinyang Yan, ByteDance +
+    Peiwen Liu, ByteDance +
+
+
+==== Overview
+
+This extension enables applications to retrieve real time light estimation
+data of the physical environment through spatial entities.
+The spatial entities mentioned in this extension specifically refer to
+ByteDance vendor-specific spatial entities, as detailed in the
+apiext:XR_BD_spatial_sensing specification.
+This extension requires apiext:XR_BD_spatial_sensing to be enabled.
+
+==== Permission
+
+:bd-spatial-permission-capability: light estimation
+include::{config}/bd_spatial_data_perm.adoc[]
+
+
+==== Inspect System Capability
+
+[open,refpage='XrSystemLightEstimationPropertiesBD',type='structs',desc='System property for light estimation.',xrefs='XrSystemProperties xrGetSystemProperties']
+--
+
+The slink:XrSystemLightEstimationPropertiesBD structure is defined as:
+
+include::{generated}/api/structs/XrSystemLightEstimationPropertiesBD.adoc[]
+
+.Member Descriptions
+****
+* pname:type is the elink:XrStructureType of this structure.
+* pname:next is code:NULL or a pointer to the next structure in a structure
+  chain.
+* pname:supportsLightEstimation is an basetype:XrBool32, indicating if the
+  current system is capable of light estimation.
+* pname:supportsEnvironmentTexture is an basetype:XrBool32, indicating if
+  the current system supports providing environment texture data.
+* pname:supportsSphericalHarmonics is an basetype:XrBool32, indicating if
+  the current system supports providing spherical harmonics coefficients.
+****
+
+An application can: inspect whether the system is capable of light
+estimation by chaining an slink:XrSystemLightEstimationPropertiesBD
+structure to the slink:XrSystemProperties::pname:next chain when calling
+flink:xrGetSystemProperties.
+
+If a runtime returns ename:XR_FALSE for pname:supportsLightEstimation, the
+system does not support retrieving light estimate data, and must: return
+ename:XR_ERROR_FEATURE_UNSUPPORTED from flink:xrCreateSenseDataProviderBD
+when passing the elink:XrSenseDataProviderTypeBD value
+ename:XR_SENSE_DATA_PROVIDER_TYPE_LIGHT_ESTIMATION_BD.
+
+The application should: avoid using light estimation functionality when
+pname:supportsLightEstimation is ename:XR_FALSE.
+
+If a runtime returns ename:XR_FALSE for pname:supportsEnvironmentTexture,
+the runtime must: return ename:XR_ERROR_FEATURE_UNSUPPORTED from
+flink:xrCreateSenseDataProviderBD when the
+ename:XR_LIGHT_ESTIMATION_CREATE_ENVIRONMENT_TEXTURE_BIT_BD flag is set in
+slink:XrSenseDataProviderCreateInfoLightEstimationBD.
+
+If a runtime returns ename:XR_FALSE for pname:supportsSphericalHarmonics,
+the runtime must: return ename:XR_ERROR_FEATURE_UNSUPPORTED from
+flink:xrCreateSenseDataProviderBD when the
+ename:XR_LIGHT_ESTIMATION_CREATE_SPHERICAL_HARMONICS_BIT_BD flag is set in
+slink:XrSenseDataProviderCreateInfoLightEstimationBD.
+
+If the runtime returns ename:XR_TRUE for pname:supportsLightEstimation, the
+system supports light estimation.
+This implies that
+slink:XrSystemSpatialSensingPropertiesBD::pname:supportsSpatialSensing must:
+also be ename:XR_TRUE.
+
+Note that pname:supportsLightEstimation may: be ename:XR_TRUE even if
+running on an Android-based platform and the application does not have the
+required `com.picovr.permission.SPATIAL_DATA` permission both declared in
+the manifest and granted at runtime.
+Evaluation of permissions takes place later, in the asynchronous operation
+started by flink:xrStartSenseDataProviderAsyncBD.
+
+include::{generated}/validity/structs/XrSystemLightEstimationPropertiesBD.adoc[]
+--
+
+[[bd_spatial_light_estimation-create-provider]]
+==== Create Light Estimation Provider
+
+[open,refpage='XrSenseDataProviderCreateInfoLightEstimationBD',type='structs',desc='Light estimation provider configuration',xrefs='xrCreateSenseDataProviderBD XrSenseDataProviderCreateInfoBD']
+--
+The slink:XrSenseDataProviderCreateInfoLightEstimationBD structure is
+defined as:
+
+include::{generated}/api/structs/XrSenseDataProviderCreateInfoLightEstimationBD.adoc[]
+
+.Member Descriptions
+****
+* pname:type is the elink:XrStructureType of this structure.
+* pname:next is code:NULL or a pointer to the next structure in a structure
+  chain, such as slink:XrEnvironmentTextureCreateConfigInfoBD.
+* pname:createFlags is a bitmask of elink:XrLightEstimationCreateFlagBitsBD
+  describing light estimation configurations.
+****
+
+Applications create an slink:XrSenseDataProviderBD handle representing a
+light estimation provider by calling flink:xrCreateSenseDataProviderBD,
+setting slink:XrSenseDataProviderCreateInfoBD::pname:providerType to the
+elink:XrSenseDataProviderTypeBD value
+ename:XR_SENSE_DATA_PROVIDER_TYPE_LIGHT_ESTIMATION_BD, and chaining
+slink:XrSenseDataProviderCreateInfoLightEstimationBD to
+slink:XrSenseDataProviderCreateInfoBD::pname:next.
+
+Applications use this provider handle to obtain light estimate data that is
+generated by the runtime.
+This data consists of spatial entities that include at least an
+slink:XrSpatialEntityComponentDataLightEstimationBD component and an
+slink:XrSpatialEntityComponentDataLocationBD component.
+
+Both the elink:XrSenseDataProviderTypeBD value and the chained
+slink:XrSenseDataProviderCreateInfoLightEstimationBD structure are required.
+If slink:XrSenseDataProviderCreateInfoBD::pname:providerType is
+ename:XR_SENSE_DATA_PROVIDER_TYPE_LIGHT_ESTIMATION_BD but no
+slink:XrSenseDataProviderCreateInfoLightEstimationBD is present in the
+pname:next chain of slink:XrSenseDataProviderCreateInfoBD, the runtime must:
+return ename:XR_ERROR_VALIDATION_FAILURE.
+
+The provider is configured through the
+slink:XrSenseDataProviderCreateInfoLightEstimationBD structure, where
+applications specify the required data types via the
+elink:XrLightEstimationCreateFlagBitsBD bitmask.
+
+If ename:XR_LIGHT_ESTIMATION_CREATE_ENVIRONMENT_TEXTURE_BIT_BD flag is set
+in pname:createFlags, applications must: include an
+slink:XrEnvironmentTextureCreateConfigInfoBD structure in the pname:next
+chain of slink:XrSenseDataProviderCreateInfoBD.
+
+The runtime must: not require a particular structure chaining order in the
+pname:next chain of slink:XrSenseDataProviderCreateInfoBD when validating
+slink:XrSenseDataProviderCreateInfoLightEstimationBD and
+slink:XrEnvironmentTextureCreateConfigInfoBD.
+
+The runtime must: not produce different validation results for different
+structure chaining orders in that pname:next chain.
+
+The runtime must: return ename:XR_ERROR_VALIDATION_FAILURE if the
+ename:XR_LIGHT_ESTIMATION_CREATE_ENVIRONMENT_TEXTURE_BIT_BD flag is set in
+pname:createFlags but no slink:XrEnvironmentTextureCreateConfigInfoBD is
+present in the pname:next chain of slink:XrSenseDataProviderCreateInfoBD.
+
+The runtime must: return ename:XR_ERROR_FEATURE_UNSUPPORTED if any bit in
+pname:createFlags is not supported.
+
+include::{generated}/validity/structs/XrSenseDataProviderCreateInfoLightEstimationBD.adoc[]
+--
+
+[open,refpage='XrLightEstimationCreateFlagsBD',type='flags',desc='XrLightEstimationCreateFlagsBD',xrefs='XrLightEstimationCreateFlagBitsBD']
+--
+include::{generated}/api/flags/XrLightEstimationCreateFlagsBD.adoc[]
+
+The slink:XrSenseDataProviderCreateInfoLightEstimationBD::pname:createFlags
+member is of the type elink:XrLightEstimationCreateFlagsBD, and contains a
+bitwise-OR of the bits defined in elink:XrLightEstimationCreateFlagBitsBD.
+--
+
+[open,refpage='XrLightEstimationCreateFlagBitsBD',type='enums',desc='XrLightEstimationCreateFlagBitsBD',xrefs='XrLightEstimationCreateFlagsBD']
+--
+Valid bits for elink:XrLightEstimationCreateFlagsBD are defined by
+elink:XrLightEstimationCreateFlagBitsBD, which is specified as:
+
+include::{generated}/api/enums/XrLightEstimationCreateFlagBitsBD.adoc[]
+include::{generated}/api/enums/XrLightEstimationCreateFlagBitsBD.comments.adoc[]
+--
+
+==== Environment Textures
+
+[open,refpage='XrEnvironmentTextureCreateConfigInfoBD',type='structs',desc='Environment texture configuration',xrefs='xrCreateSenseDataProviderBD']
+--
+include::{generated}/api/structs/XrEnvironmentTextureCreateConfigInfoBD.adoc[]
+
+.Member Descriptions
+****
+* pname:type is the elink:XrStructureType of this structure.
+* pname:next is code:NULL or a pointer to the next structure in a structure
+  chain.
+  No such structures are defined in core OpenXR or this extension.
+* pname:resolution is the environment texture resolution, selected from the
+  resolution levels defined by elink:XrEnvironmentTextureResolutionBD.
+* pname:pixelFormat is the color format, selected from the supported pixel
+  formats defined by elink:XrEnvironmentTexturePixelFormatBD.
+* pname:transferType is the data transfer type, selected from the supported
+  transfer types defined by elink:XrEnvironmentTextureTransferTypeBD.
+****
+
+The slink:XrEnvironmentTextureCreateConfigInfoBD structure contains three
+essential parameters that must: be configured when environment texture is
+enabled:
+
+Applications can: enumerate supported combinations using the following
+functions:
+
+* flink:xrEnumerateEnvironmentTextureResolutionsBD
+* flink:xrEnumerateEnvironmentTexturePixelFormatsBD
+* flink:xrEnumerateEnvironmentTextureTransferTypesBD
+
+include::{generated}/validity/structs/XrEnvironmentTextureCreateConfigInfoBD.adoc[]
+--
+
+[open,refpage='XrEnvironmentTextureResolutionBD',type='enums',desc='Environment texture resolution types',xrefs='xrEnumerateEnvironmentTextureResolutionsBD']
+--
+The elink:XrEnvironmentTextureResolutionBD enumeration identifies the
+different resolution levels available for configuring environment texture
+resolution.
+
+include::{generated}/api/enums/XrEnvironmentTextureResolutionBD.adoc[]
+
+
+The enumerants have the following values:
+
+include::{generated}/api/enums/XrEnvironmentTextureResolutionBD.comments.adoc[]
+--
+
+[open,refpage='XrEnvironmentTextureTransferTypeBD',type='enums',desc='Environment texture data transfer methods',xrefs='xrEnumerateEnvironmentTextureTransferTypesBD']
+--
+The elink:XrEnvironmentTextureTransferTypeBD enumeration defines the data
+transfer mechanisms supported for environment texture.
+
+include::{generated}/api/enums/XrEnvironmentTextureTransferTypeBD.adoc[]
+
+The enumerants have the following values:
+
+include::{generated}/api/enums/XrEnvironmentTextureTransferTypeBD.comments.adoc[]
+
+Transfer type selection impacts performance characteristics:
+
+* ename:XR_ENVIRONMENT_TEXTURE_TRANSFER_TYPE_RAW_BD : CPU direct access mode
+  for post-processing scenarios
+--
+
+[open,refpage='XrEnvironmentTexturePixelFormatBD',type='enums',desc='Environment texture pixel formats',xrefs='xrEnumerateEnvironmentTexturePixelFormatsBD']
+--
+The elink:XrEnvironmentTexturePixelFormatBD enumeration specifies the
+supported pixel formats for environment texture data.
+
+include::{generated}/api/enums/XrEnvironmentTexturePixelFormatBD.adoc[]
+
+The enumerants have the following values:
+
+include::{generated}/api/enums/XrEnvironmentTexturePixelFormatBD.comments.adoc[]
+--
+
+[open,refpage='xrEnumerateEnvironmentTextureResolutionsBD',type='protos',desc='Enumerate supported texture resolutions',xrefs='']
+--
+The flink:xrEnumerateEnvironmentTextureResolutionsBD function is defined as:
+
+include::{generated}/api/protos/xrEnumerateEnvironmentTextureResolutionsBD.adoc[]
+
+.Parameter Descriptions
+****
+* pname:session is the slink:XrSession that enumerates the supported
+  environment texture resolutions.
+* pname:resolutionCapacityInput is the capacity of the pname:resolutions, or
+  0 to retrieve the required capacity.
+* pname:resolutionCountOutput is a pointer to the count of code:uint32_t
+  formats written, or a pointer to the required capacity in the case that
+  pname:resolutionCapacityInput is insufficient.
+* pname:resolutions is a pointer to an array of
+  elink:XrEnvironmentTextureResolutionBD, but can: be code:NULL if
+  pname:resolutionCapacityInput is `0`.
+* See the <<fundamentals-buffer-size-parameters>> section for a detailed
+  description of retrieving the required pname:resolutions size.
+****
+
+Higher resolutions (e.g. 128x128) provide better lighting accuracy but
+consume more computational resources.
+
+include::{generated}/validity/protos/xrEnumerateEnvironmentTextureResolutionsBD.adoc[]
+--
+
+[open,refpage='xrEnumerateEnvironmentTexturePixelFormatsBD',type='protos',desc='Enumerate supported pixel formats',xrefs='']
+--
+The flink:xrEnumerateEnvironmentTexturePixelFormatsBD function is defined
+as:
+
+include::{generated}/api/protos/xrEnumerateEnvironmentTexturePixelFormatsBD.adoc[]
+
+.Parameter Descriptions
+****
+* pname:session is the slink:XrSession that enumerates the supported
+  environment texture pixel formats.
+* pname:pixelFormatCapacityInput is the capacity of the pname:pixelFormats,
+  or 0 to retrieve the required capacity.
+* pname:pixelFormatCountOutput is a pointer to the count of code:uint32_t
+  formats written, or a pointer to the required capacity in the case that
+  pname:pixelFormatCapacityInput is insufficient.
+* pname:pixelFormats is a pointer to an array of
+  elink:XrEnvironmentTexturePixelFormatBD, but can: be code:NULL if
+  pname:pixelFormatCapacityInput is `0`.
+* See the <<fundamentals-buffer-size-parameters>> section for a detailed
+  description of retrieving the required pname:pixelFormats size.
+****
+
+The available pixel formats determine how color data is stored in memory.
+
+include::{generated}/validity/protos/xrEnumerateEnvironmentTexturePixelFormatsBD.adoc[]
+--
+
+[open,refpage='xrEnumerateEnvironmentTextureTransferTypesBD',type='protos',desc='Enumerate supported transfer types',xrefs='']
+--
+The flink:xrEnumerateEnvironmentTextureTransferTypesBD function is defined
+as:
+
+include::{generated}/api/protos/xrEnumerateEnvironmentTextureTransferTypesBD.adoc[]
+
+.Parameter Descriptions
+****
+* pname:session is the slink:XrSession that enumerates the supported
+  environment texture transfer types.
+* pname:transferTypeCapacityInput is the capacity of the
+  pname:transferTypes, or 0 to retrieve the required capacity.
+* pname:transferTypeCountOutput is a pointer to the count of code:uint32_t
+  transfer types written, or a pointer to the required capacity in the case
+  that pname:transferTypeCapacityInput is insufficient.
+* pname:transferTypes is a pointer to an array of
+  elink:XrEnvironmentTextureTransferTypeBD, but can: be code:NULL if
+  pname:transferTypeCapacityInput is `0`.
+* See the <<fundamentals-buffer-size-parameters>> section for a detailed
+  description of retrieving the required pname:transferTypes size.
+****
+
+include::{generated}/validity/protos/xrEnumerateEnvironmentTextureTransferTypesBD.adoc[]
+--
+
+
+==== Start Light Estimation Provider
+
+An application starts the light estimation provider by calling
+flink:xrStartSenseDataProviderAsyncBD after successfully creating it.
+Applications can: check the data provider state by calling
+flink:xrGetSenseDataProviderStateBD.
+
+Subsequent operations must: not be performed unless the data provider state
+is ename:XR_SENSE_DATA_PROVIDER_STATE_RUNNING_BD.
+If the data provider state is not
+ename:XR_SENSE_DATA_PROVIDER_STATE_RUNNING_BD and the application intends to
+use the provider, the application must: take appropriate action and try to
+call flink:xrStartSenseDataProviderAsyncBD again before using the handle.
+
+The definitions and usage details are described in
+apiext:XR_BD_spatial_sensing.
+
+
+==== Get Light Estimation Component Data
+
+Applications can: query the latest light estimate data from the light
+estimation provider by calling flink:xrQuerySenseDataAsyncBD.
+The runtime then generates a snapshot of the light estimation information,
+and the application can: obtain detailed light estimate data from the
+snapshot through the slink:XrSpatialEntityComponentDataLightEstimationBD
+structure.
+
+Applications may: chain zero or more applicable light estimation data
+structures to the
+slink:XrSpatialEntityComponentDataLightEstimationBD::pname:next chain when
+querying light estimate data.
+
+If multiple applicable light estimation data structures are defined,
+applications may: chain any subset of them.
+Applications may: set pname:next to code:NULL to query only the
+slink:XrSpatialEntityComponentDataLightEstimationBD::pname:isValid state.
+
+To request detailed light estimate data, configure and chain the
+corresponding component structures to the
+slink:XrSpatialEntityComponentDataLightEstimationBD::pname:next chain:
+
+* Chain slink:XrLightEstimationDataSphericalHarmonicsBD to be populated with
+  spherical harmonics coefficients, if
+  ename:XR_LIGHT_ESTIMATION_CREATE_SPHERICAL_HARMONICS_BIT_BD was passed
+  during provider creation.
+* Chain slink:XrLightEstimationDataEnvironmentTextureRawBD to be populated
+  with environment texture data, if
+  ename:XR_LIGHT_ESTIMATION_CREATE_ENVIRONMENT_TEXTURE_BIT_BD was passed
+  during provider creation.
+
+The runtime must: ignore and not populate chained structures for which the
+corresponding bit was not set at provider creation.
+
+The runtime must: populate data for all properly configured components in
+the pname:next chain.
+
+When the light estimate result changes, the runtime must: send an
+slink:XrEventDataSenseDataUpdatedBD event with the handle of the light
+estimation provider.
+Upon receiving this event, the application can: re-query to obtain the
+latest light estimate data information.
+This event-driven approach is the recommended method for obtaining updated
+light estimate data.
+
+All the functions to get light estimation info are defined in
+apiext:XR_BD_spatial_sensing.
+
+
+[open,refpage='XrSpatialEntityComponentDataLightEstimationBD',type='structs',desc='Light estimation component data container',xrefs='xrGetSpatialEntityComponentDataBD']
+--
+The slink:XrSpatialEntityComponentDataLightEstimationBD structure contains
+light estimate state information retrieved from a spatial entity, and is
+defined as:
+
+include::{generated}/api/structs/XrSpatialEntityComponentDataLightEstimationBD.adoc[]
+
+.Member Descriptions
+****
+* pname:type is the elink:XrStructureType of this structure.
+* pname:next is code:NULL or a pointer to the next structure in a structure
+  chain, such as slink:XrLightEstimationDataSphericalHarmonicsBD,
+  slink:XrLightEstimationDataEnvironmentTextureRawBD.
+* pname:isValid is an basetype:XrBool32 indicating whether the light
+  estimation component data is valid.
+****
+
+The slink:XrSpatialEntityComponentDataLightEstimationBD is an output
+structure for getting the light estimate data from an entity in the
+snapshot.
+This corresponds to an elink:XrSpatialEntityComponentTypeBD value of
+ename:XR_SPATIAL_ENTITY_COMPONENT_TYPE_LIGHT_ESTIMATION_BD.
+
+An applicable light estimation data structure is defined as:
+
+* slink:XrLightEstimationDataSphericalHarmonicsBD if
+  ename:XR_LIGHT_ESTIMATION_CREATE_SPHERICAL_HARMONICS_BIT_BD was set in
+  slink:XrSenseDataProviderCreateInfoLightEstimationBD::pname:createFlags
+  when the provider was created.
+* slink:XrLightEstimationDataEnvironmentTextureRawBD if
+  ename:XR_LIGHT_ESTIMATION_CREATE_ENVIRONMENT_TEXTURE_BIT_BD was set in
+  slink:XrSenseDataProviderCreateInfoLightEstimationBD::pname:createFlags
+  when the provider was created.
+
+If the pname:next chain of
+slink:XrSpatialEntityComponentDataLightEstimationBD does not contain any
+applicable light estimation data structures, the runtime must: still
+populate pname:isValid.
+The runtime must: not return ename:XR_ERROR_VALIDATION_FAILURE solely
+because no applicable light estimation data structures are chained.
+
+
+[NOTE]
+.Note
+====
+To access spatial location information associated with light estimate data,
+applications follow the process of getting
+slink:XrSpatialEntityComponentDataLocationBD from
+basetype:XrSpatialEntityIdBD defined in apiext:XR_BD_spatial_sensing.
+====
+
+
+include::{generated}/validity/structs/XrSpatialEntityComponentDataLightEstimationBD.adoc[]
+--
+
+[open,refpage='XrLightEstimationDataEnvironmentTextureRawBD',type='structs',desc='Raw environment texture image container']
+--
+The slink:XrLightEstimationDataEnvironmentTextureRawBD structure is defined
+as:
+
+include::{generated}/api/structs/XrLightEstimationDataEnvironmentTextureRawBD.adoc[]
+
+.Member Descriptions
+****
+* pname:type is the elink:XrStructureType of this structure.
+* pname:next is code:NULL or a pointer to the next structure in a structure
+  chain.
+* pname:pixelFormat is the color format specified by
+  elink:XrEnvironmentTexturePixelFormatBD.
+* pname:cubemapFaceBufferSize is the size of the raw pixel data buffer in
+  bytes for each face.
+* pname:rightCubemapFaceBuffer points to raw pixel data for the +X face.
+  The buffer size must: exactly match pname:cubemapFaceBufferSize value.
+* pname:leftCubemapFaceBuffer points to raw pixel data for the -X face.
+  The buffer size must: exactly match pname:cubemapFaceBufferSize value.
+* pname:topCubemapFaceBuffer points to raw pixel data for the +Y face.
+  The buffer size must: exactly match pname:cubemapFaceBufferSize value.
+* pname:bottomCubemapFaceBuffer points to raw pixel data for the -Y face.
+  The buffer size must: exactly match pname:cubemapFaceBufferSize value.
+* pname:frontCubemapFaceBuffer points to raw pixel data for the -Z face.
+  The buffer size must: exactly match pname:cubemapFaceBufferSize value.
+* pname:backCubemapFaceBuffer points to raw pixel data for the +Z face.
+  The buffer size must: exactly match pname:cubemapFaceBufferSize value.
+****
+
+The slink:XrLightEstimationDataEnvironmentTextureRawBD structure contains
+raw pixel data for environment textures retrieved from light estimation
+provider.
+
+When using slink:XrLightEstimationDataEnvironmentTextureRawBD to retrieve
+environment texture data, the application must:
+
+* Pass valid pointers for all six face pointers
+  (pname:rightCubemapFaceBuffer to pname:backCubemapFaceBuffer).
+* Ensure the allocated buffers have a size of at least
+  pname:cubemapFaceBufferSize bytes per face.
+* Set pname:cubemapFaceBufferSize to the total data size per face,
+  calculated as: [source] faceSize = resolutionWidth × resolutionHeight ×
+  bytesPerPixel where resolutionWidth and resolutionHeight are derived from
+  the active elink:XrEnvironmentTextureResolutionBD, and bytesPerPixel is
+  defined by elink:XrEnvironmentTexturePixelFormatBD.
+
+and the runtime must:
+
+* Return ename:XR_ERROR_VALIDATION_FAILURE if pname:cubemapFaceBufferSize
+  does not equal the expected value described above.
+* Write texture data when the
+  slink:XrSpatialEntityComponentDataLightEstimationBD::pname:isValid member
+  returns ename:XR_TRUE.
+* Write texture data according to the layout defined by the active
+  elink:XrEnvironmentTextureResolutionBD and
+  elink:XrEnvironmentTexturePixelFormatBD, and as illustrated in
+  <<fig-cubemap-buffer-layout>>.
+
+[#fig-cubemap-buffer-layout]
+.Cubemap face buffer layout
+image::images/bd_spatial_light_estimation_cube_texture_buffer_layout.svg[opts="inline", align="center", title="Cubemap face buffer layout"]
+
+
+Each face buffer must: use a top-left origin where the local U axis
+increases to the right and the V axis increases downward, and be packed in
+row-major order, as illustrated in <<fig-cubemap-buffer-layout>>.
+
+The face mapping in this extension is:
+
+* +Z (Back): pname:backCubemapFaceBuffer
+* +X (Right): pname:rightCubemapFaceBuffer
+* +Y (Top): pname:topCubemapFaceBuffer
+* -Z (Front): pname:frontCubemapFaceBuffer
+* -X (Left): pname:leftCubemapFaceBuffer
+* -Y (Bottom): pname:bottomCubemapFaceBuffer
+
+
+include::{generated}/validity/structs/XrLightEstimationDataEnvironmentTextureRawBD.adoc[]
+--
+
+[open,refpage='XrLightEstimationDataSphericalHarmonicsBD',type='structs',desc='Spherical harmonics coefficients container']
+--
+The slink:XrLightEstimationDataSphericalHarmonicsBD structure is defined as:
+
+include::{generated}/api/structs/XrLightEstimationDataSphericalHarmonicsBD.adoc[]
+
+.Member Descriptions
+****
+* pname:type is the elink:XrStructureType of this structure.
+* pname:next is code:NULL or a pointer to the next structure in a structure
+  chain.
+* pname:kind is the spherical harmonics order specification
+  elink:XrSphericalHarmonicsKindBD.
+* pname:coefficientCapacityInput is the capacity of the pname:coefficients,
+  or 0 to retrieve the required capacity.
+* pname:coefficientCountOutput is the count of code:float values written, or
+  a pointer to the required capacity in the case that
+  pname:coefficientCapacityInput is insufficient.
+* pname:coefficients is the application-allocated spherical harmonics
+  coefficients array pointer.
+  The memory layout pointed to by this pointer is organized as a
+  two-dimensional array with the structure `float[coefficientCountOutput /
+  3][3]` (row-major).
+  Here, the first dimension (pname:coefficientCountOutput / 3) corresponds
+  to the total number of spherical harmonic coefficients divided across the
+  three color channels, and the second dimension (3) represents the three
+  columns for the color channels: red, green, and blue.
+  The length of pname:coefficientCountOutput is directly influenced by the
+  order of the spherical harmonics, which is determined by the runtime and
+  remains constant for the lifetime of the light estimation provider.
+****
+
+The slink:XrLightEstimationDataSphericalHarmonicsBD structure contains
+spherical harmonics coefficients for global illumination calculations
+(lighting).
+
+include::{generated}/validity/structs/XrLightEstimationDataSphericalHarmonicsBD.adoc[]
+--
+
+[open,refpage='XrSphericalHarmonicsKindBD',type='enums',desc='Spherical harmonics coefficient type specification',xrefs='XrLightEstimationDataSphericalHarmonicsBD']
+--
+include::{generated}/api/enums/XrSphericalHarmonicsKindBD.adoc[]
+
+The elink:XrSphericalHarmonicsKindBD enumeration specifies the type of
+spherical harmonics coefficients used for light estimate.
+
+The enumerants have the following values:
+
+include::{generated}/api/enums/XrSphericalHarmonicsKindBD.comments.adoc[]
+--
+
+
+==== Sample Code
+
+The following code demonstrates how to query light estimate data including
+Environment Texture and Spherical Harmonics coefficients based on the sample
+code in apiext:XR_BD_spatial_sensing:
+
+[source,cpp]
+----
+
+// The function pointers are previously initialized using xrGetInstanceProcAddr.
+PFN_xrCreateSenseDataProviderBD xrCreateSenseDataProviderBD;                           // previously initialized
+PFN_xrStartSenseDataProviderAsyncBD xrStartSenseDataProviderAsyncBD;                   // previously initialized
+PFN_xrStartSenseDataProviderCompleteBD xrStartSenseDataProviderCompleteBD;             // previously initialized
+PFN_xrStopSenseDataProviderBD xrStopSenseDataProviderBD;                               // previously initialized
+PFN_xrDestroySenseDataProviderBD xrDestroySenseDataProviderBD;                         // previously initialized
+PFN_xrQuerySenseDataAsyncBD xrQuerySenseDataAsyncBD;                                   // previously initialized
+PFN_xrQuerySenseDataCompleteBD xrQuerySenseDataCompleteBD;                             // previously initialized
+PFN_xrGetSenseDataProviderStateBD xrGetSenseDataProviderStateBD;                       // previously initialized
+PFN_xrGetQueriedSenseDataBD xrGetQueriedSenseDataBD;                                   // previously initialized
+PFN_xrEnumerateSpatialEntityComponentTypesBD xrEnumerateSpatialEntityComponentTypesBD; // previously initialized
+PFN_xrGetSpatialEntityComponentDataBD xrGetSpatialEntityComponentDataBD;               // previously initialized
+PFN_xrDestroySenseDataSnapshotBD xrDestroySenseDataSnapshotBD;                         // previously initialized
+
+XrInstance instance; // previously initialized
+XrSession session;   // previously initialized
+XrSenseDataProviderBD provider;             // previously returned from xrCreateSenseDataProviderBD
+XrSenseDataSnapshotBD querySnapshotHandle;  // previously returned from xrQuerySenseDataCompleteBD
+XrSpatialEntityIdBD entityId; // previously obtained from xrGetQueriedSenseDataBD
+
+// Query light estimate data
+
+XrSpatialEntityComponentGetInfoBD xrLightEstimateGetInfoBd{
+        .type = XR_TYPE_SPATIAL_ENTITY_COMPONENT_GET_INFO_BD,
+        .next = nullptr,
+        .entityId = entityId,
+        .componentType = XR_SPATIAL_ENTITY_COMPONENT_TYPE_LIGHT_ESTIMATION_BD
+};
+
+XrSpatialEntityComponentDataLightEstimationBD xrLightEstimateDataBd;
+xrLightEstimateDataBd.type = XR_TYPE_SPATIAL_ENTITY_COMPONENT_DATA_LIGHT_ESTIMATION_BD;
+xrLightEstimateDataBd.next = nullptr;
+
+XrLightEstimationDataSphericalHarmonicsBD xrSphericalHarmonicsBd {
+        .type = XR_TYPE_LIGHT_ESTIMATION_DATA_SPHERICAL_HARMONICS_BD,
+        .next = nullptr,
+        .kind = XR_SPHERICAL_HARMONICS_KIND_TOTAL_BD,
+        .coefficientCapacityInput = 0,
+        .coefficientCountOutput = 0,
+        .coefficients = nullptr
+};
+
+
+// RGBA 16-bit (4 channels × 2 bytes per channel) → 8 bytes/pixel
+// 128 × 128 pixels per face
+uint32_t faceSize = 128 * 128 * 8;
+uint8_t cubeMapRightImage[faceSize];
+uint8_t cubeMapLeftImage[faceSize];
+uint8_t cubeMapTopImage[faceSize];
+uint8_t cubeMapBottomImage[faceSize];
+uint8_t cubeMapFrontImage[faceSize];
+uint8_t cubeMapBackImage[faceSize];
+
+
+
+
+XrLightEstimationDataEnvironmentTextureRawBD xrEnvironmentTextureImageRawBd {
+        .type = XR_TYPE_LIGHT_ESTIMATION_DATA_ENVIRONMENT_TEXTURE_RAW_BD,
+        .next = nullptr,
+        .pixelFormat = XR_ENVIRONMENT_TEXTURE_PIXEL_FORMAT_RGBA_16FLOAT_BD,
+        .cubemapFaceBufferSize = faceSize,
+        .rightCubemapFaceBuffer = &cubeMapRightImage[0],
+        .leftCubemapFaceBuffer = &cubeMapLeftImage[0],
+        .topCubemapFaceBuffer = &cubeMapTopImage[0],
+        .bottomCubemapFaceBuffer = &cubeMapBottomImage[0],
+        .frontCubemapFaceBuffer = &cubeMapFrontImage[0],
+        .backCubemapFaceBuffer = &cubeMapBackImage[0]
+};
+
+xrLightEstimateDataBd.next = &xrSphericalHarmonicsBd;
+xrSphericalHarmonicsBd.next = &xrEnvironmentTextureImageRawBd;
+
+XrSpatialEntityComponentDataBaseHeaderBD*  xrComponentData  = (XrSpatialEntityComponentDataBaseHeaderBD *)&xrLightEstimateDataBd;
+
+CHK_XR(xrGetSpatialEntityComponentDataBD(querySnapshotHandle, &xrLightEstimateGetInfoBd,
+                                            xrComponentData));
+
+xrSphericalHarmonicsBd.coefficientCapacityInput = xrSphericalHarmonicsBd.coefficientCountOutput;
+
+std::vector<float> coefficients(xrSphericalHarmonicsBd.coefficientCountOutput);
+
+xrSphericalHarmonicsBd.coefficients = coefficients.data();
+
+CHK_XR(xrGetSpatialEntityComponentDataBD(querySnapshotHandle, &xrLightEstimateGetInfoBd,
+                                            xrComponentData));
+
+// After calling xrGetSpatialEntityComponentDataBD
+// Should check data validity state first
+if (!xrLightEstimateDataBd.isValid) {
+    // Handle invalid state
+}
+
+// Use the retrieved data as needed
+// The raw pixel data for each environment texture is stored in xrEnvironmentTextureImageRawBd.
+// The spherical harmonics coefficients are stored in xrSphericalHarmonicsBd.coefficients.
+----
+
+include::{generated}/interfaces/XR_BD_spatial_light_estimation.adoc[leveloffset=1]
+
+==== Issues
+
+==== Version History
+
+* Revision 1, 2025-03-19 (Zhao Li)
+
+** Initial extension description

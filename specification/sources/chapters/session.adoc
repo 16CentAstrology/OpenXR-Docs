@@ -107,6 +107,12 @@ the session and calls flink:xrDestroySession.
 A session is considered **running** after a successful call to
 flink:xrBeginSession and remains running until any call is made to
 flink:xrEndSession.
+ifdef::XR_EXT_spatial_container[]
+When the apiext:XR_EXT_spatial_container extension is available and
+<<ext_spatial_container-changes_to_session_state,spatial container support
+is enabled>>, a session is considered running while it is in the state
+ename:XR_SESSION_STATE_IDLE.
+endif::XR_EXT_spatial_container[]
 Certain functions are only valid to call when a session is running, such as
 flink:xrWaitFrame, or else the ename:XR_ERROR_SESSION_NOT_RUNNING error
 must: be returned by the runtime.
@@ -115,6 +121,12 @@ must: be returned by the runtime.
 A session is considered **not running** before a successful call to
 flink:xrBeginSession and becomes not running again after any call is made to
 flink:xrEndSession.
+ifdef::XR_EXT_spatial_container[]
+When the apiext:XR_EXT_spatial_container extension is available and
+<<ext_spatial_container-changes_to_session_state,spatial container support
+is enabled>>, a session is considered not running while it is not in the
+state ename:XR_SESSION_STATE_IDLE.
+endif::XR_EXT_spatial_container[]
 Certain functions are only valid to call when a session is not running, such
 as flink:xrBeginSession, or else the ename:XR_ERROR_SESSION_RUNNING error
 must: be returned by the runtime.

@@ -632,7 +632,7 @@ PFN_xrPollFutureEXT xrPollFutureEXT; // previously initialized
 XrInstance instance;                 // previously initialized
 XrSession session;                   // previously initialized
 
-XrFutureEXT futureFooObjects;
+XrFutureEXT futureFooObjects {XR_NULL_FUTURE_EXT};
 XrResult result;
 
 XrFooObjectCreateInfo createInfo{

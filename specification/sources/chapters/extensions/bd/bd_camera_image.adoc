@@ -1,0 +1,1900 @@
+// Copyright (c) 2017-2025, ByteDance.
+//
+// SPDX-License-Identifier: CC-BY-4.0
+
+include::{generated}/meta/XR_BD_camera_image.adoc[]
+
+*Contributors*::
+    Zhipeng Liu, ByteDance +
+    Zhao Li, ByteDance +
+    Shuai Liu, ByteDance
+
+==== Overview
+
+This extension enables applications to acquire image data from cameras on XR
+devices.
+It depends on the apiext:XR_EXT_future extension, which must: be enabled to
+use this extension.
+
+Key terms defined in this extension:
+
+* **Camera**: A device (physical or virtual) that provides image data.
+* **Camera Property**: Attributes of a camera that help developers identify
+  it, such as orientation, position, and type.
+* **Camera Capability**: Configurable features supported by a camera,
+  including resolution, frame rate, image format, and data transfer method.
+* **Camera Capture Session**: A configured stream associated with a camera.
+  Applications retrieve camera images from a capture session.
+  A camera may: support multiple capture sessions, subject to
+  runtime-imposed limits.
+* **Camera Image**: Captured image data obtained from a Camera Capture
+  Session.
+
+The typical workflow for using this extension is as follows:
+
+1. Enumerate available cameras, optionally applying filters.
+2. Retrieve camera properties or capabilities (if needed) to select a
+   suitable camera.
+3. Create a Camera Device handle.
+4. Create a Camera Capture Session with specific configurations.
+5. Begin the capture session to request the runtime to update camera images.
+6. Acquire camera images and retrieve their data, optionally with the
+   intrinsics and extrinsics.
+7. Release camera images when no longer needed.
+8. End and destroy the capture session when image capture is complete.
+9. Destroy the Camera Device handle.
+
+==== Permissions
+
+If a runtime enforces a permission system to control application access to
+camera data, and if the application has not been granted permission,
+flink:xrCreateCameraDeviceAsyncBD must: return
+ename:XR_ERROR_PERMISSION_INSUFFICIENT.
+
+On AOSP-based systems, the runtime must: enforce the use of the
+`android.permission.CAMERA` permission string for this functionality.
+
+
+Since flink:xrCreateCameraDeviceAsyncBD may: return a permission error,
+applications should: use platform APIs to check and request the appropriate
+permissions before creating a camera device.
+
+
+On AOSP-based platforms, if the user revokes permission after the handle is
+created, the runtime may: terminate the application's process.
+
+
+==== Camera Representations
+===== Camera ID
+[open,refpage='XrCameraIdBD',type='basetypes',desc='ID referring to a camera']
+--
+include::{generated}/api/basetypes/XrCameraIdBD.adoc[]
+
+basetype:XrCameraIdBD is an opaque atom used to identify a physical or
+virtual camera supported by the runtime.
+A valid basetype:XrCameraIdBD is tied to an slink:XrInstance, and the
+runtime must: not reuse the same ID for different cameras within the same
+slink:XrInstance.
+--
+
+===== Camera Device Handle
+[open,refpage='XrCameraDeviceBD',type='handles',desc='Represents a camera device']
+--
+include::{generated}/api/handles/XrCameraDeviceBD.adoc[]
+
+The slink:XrCameraDeviceBD handle represents a logical connection to a
+camera.
+Applications create this handle to express intent to access a specific
+camera and retrieve its images.
+The runtime may: initialize the physical/virtual camera when this handle is
+created.
+--
+
+==== Enumerate Available Cameras
+Applications can: enumerate cameras supported by the runtime, optionally
+filtering by properties and/or capabilities which are described later.
+
+[open,refpage='xrEnumerateAvailableCamerasBD',type='protos',desc='Enumerate the available camera IDs',xrefs='XrAvailableCamerasEnumerateInfoBD']
+--
+The flink:xrEnumerateAvailableCamerasBD function is defined as:
+
+include::{generated}/api/protos/xrEnumerateAvailableCamerasBD.adoc[]
+
+.Parameter Descriptions
+****
+* pname:instance is a handle to an slink:XrInstance.
+* pname:enumerateInfo is an slink:XrAvailableCamerasEnumerateInfoBD
+  structure containing filter criteria.
+* pname:cameraCapacityInput is the capacity of the pname:cameras array, or 0
+  to indicate a request to retrieve the required capacity.
+* pname:cameraCountOutput is a pointer to the count of pname:cameras
+  written, or a pointer to the required capacity in the case that
+  pname:cameraCapacityInput is insufficient.
+* pname:cameras is an array of slink:XrAvailableCameraBD structures filled
+  in by the runtime.
+  Each entry contains an basetype:XrCameraIdBD.
+* See <<fundamentals-buffer-size-parameters, Buffer Size Parameters>>
+  chapter for a detailed description of retrieving the required
+  pname:cameras size.
+****
+
+If slink:XrAvailableCamerasEnumerateInfoBD::pname:properties or
+slink:XrAvailableCamerasEnumerateInfoBD::pname:capabilities is not
+code:NULL, the runtime must: return cameras that match **all** properties or
+capabilities.
+If properties and capabilities are both not code:NULL, the runtime must: use
+an 'AND' operator for properties and capabilities filters, which means
+return cameras that match **all** properties and capabilities.
+
+If slink:XrAvailableCamerasEnumerateInfoBD::pname:properties or
+slink:XrAvailableCamerasEnumerateInfoBD::pname:capabilities is code:NULL,
+the corresponding filter is not applied.
+
+The runtime must: keep the number of enumerated cameras for given filters
+constant over the lifetime of the current instance.
+
+include::{generated}/validity/protos/xrEnumerateAvailableCamerasBD.adoc[]
+--
+
+[open,refpage='XrAvailableCameraBD',type='structs',desc='Available camera info with extensible next chain',xrefs='xrEnumerateAvailableCamerasBD']
+--
+The slink:XrAvailableCameraBD structure is defined as:
+
+include::{generated}/api/structs/XrAvailableCameraBD.adoc[]
+
+.Member Descriptions
+****
+* pname:type is the elink:XrStructureType of this structure.
+* pname:next is code:NULL or a pointer to the next structure in a chain.
+* pname:cameraId is the basetype:XrCameraIdBD of the available camera.
+****
+
+include::{generated}/validity/structs/XrAvailableCameraBD.adoc[]
+--
+
+[open,refpage='XrAvailableCamerasEnumerateInfoBD',type='structs',desc='Information required to enumerate available cameras',xrefs='xrEnumerateAvailableCamerasBD']
+--
+The slink:XrAvailableCamerasEnumerateInfoBD structure is defined as:
+
+include::{generated}/api/structs/XrAvailableCamerasEnumerateInfoBD.adoc[]
+
+.Member Descriptions
+****
+* pname:type is the elink:XrStructureType of this structure.
+* pname:next is code:NULL or a pointer to the next structure in a chain.
+* pname:properties is an slink:XrCameraPropertiesBD structure specifying
+  property filters or code:NULL to skip property filtering.
+* pname:capabilities is an slink:XrCameraCapabilitiesBD structure specifying
+  capability filters or code:NULL to skip capability filtering.
+****
+
+Cameras returned by flink:xrEnumerateAvailableCamerasBD must: match all
+property values in pname:properties and all capability values in
+pname:capabilities.
+
+include::{generated}/validity/structs/XrAvailableCamerasEnumerateInfoBD.adoc[]
+--
+
+[open,refpage='XrCameraPropertiesBD',type='structs',desc='A number of camera properties',xrefs='xrGetCameraPropertiesBD XrAvailableCamerasEnumerateInfoBD']
+--
+The slink:XrCameraPropertiesBD structure is defined as:
+
+include::{generated}/api/structs/XrCameraPropertiesBD.adoc[]
+
+.Member Descriptions
+****
+* pname:type is the elink:XrStructureType of this structure.
+* pname:next is code:NULL or a pointer to the next structure in a chain.
+* pname:propertyCount is the number of property structures in the
+  pname:properties array.
+* pname:properties is an array of pointers to child structures of
+  slink:XrCameraPropertyBaseHeaderBD.
+****
+
+include::{generated}/validity/structs/XrCameraPropertiesBD.adoc[]
+--
+
+[open,refpage='XrCameraCapabilitiesBD',type='structs',desc='A number of camera capabilities',xrefs='XrAvailableCamerasEnumerateInfoBD']
+--
+The slink:XrCameraCapabilitiesBD structure is defined as:
+
+include::{generated}/api/structs/XrCameraCapabilitiesBD.adoc[]
+
+.Member Descriptions
+****
+* pname:type is the elink:XrStructureType of this structure.
+* pname:next is code:NULL or a pointer to the next structure in a chain.
+* pname:capabilityCount is the number of capability structures in the
+  pname:capabilities array.
+* pname:capabilities is an array of pointers to child structures of
+  slink:XrCameraCapabilityBaseHeaderBD.
+****
+
+include::{generated}/validity/structs/XrCameraCapabilitiesBD.adoc[]
+--
+
+[[bd_camera_image_camera_properties]]
+==== Camera Properties
+
+Applications can:
+
+1. Enumerate the types of properties supported by a camera.
+2. Retrieve property values for specific types.
+3. Use properties as filters when enumerating available cameras.
+
+[open,refpage='xrEnumerateCameraPropertyTypesBD',type='protos',desc='Enumerate supported camera property types.',xrefs='XrCameraPropertyTypeBD XrCameraPropertyTypesEnumerateInfoBD XrCameraPropertyTypesBD']
+--
+The flink:xrEnumerateCameraPropertyTypesBD function is defined as:
+
+include::{generated}/api/protos/xrEnumerateCameraPropertyTypesBD.adoc[]
+
+.Parameter Descriptions
+****
+* pname:instance is a handle to an slink:XrInstance.
+* pname:enumerateInfo is a pointer to an
+  slink:XrCameraPropertyTypesEnumerateInfoBD structure containing
+  enumeration parameters.
+* pname:propertyTypes is a pointer to an slink:XrCameraPropertyTypesBD
+  structure used to retrieve the property types.
+****
+
+This function enumerates all property types supported by the camera
+specified in pname:enumerateInfo.
+
+include::{generated}/validity/protos/xrEnumerateCameraPropertyTypesBD.adoc[]
+--
+
+[open,refpage='XrCameraPropertyTypesEnumerateInfoBD',type='structs',desc='Information required to enumerate camera property types',xrefs='xrEnumerateCameraPropertyTypesBD']
+--
+The slink:XrCameraPropertyTypesEnumerateInfoBD structure is defined as:
+
+include::{generated}/api/structs/XrCameraPropertyTypesEnumerateInfoBD.adoc[]
+
+.Member Descriptions
+****
+* pname:type is the elink:XrStructureType of this structure.
+* pname:next is code:NULL or a pointer to the next structure in a chain.
+* pname:cameraId is the basetype:XrCameraIdBD of the camera whose property
+  types will be enumerated.
+****
+
+include::{generated}/validity/structs/XrCameraPropertyTypesEnumerateInfoBD.adoc[]
+--
+
+[open,refpage='XrCameraPropertyTypesBD',type='structs',desc='A list of camera property types',xrefs='xrEnumerateCameraPropertyTypesBD']
+--
+The slink:XrCameraPropertyTypesBD structure is defined as:
+
+include::{generated}/api/structs/XrCameraPropertyTypesBD.adoc[]
+
+.Member Descriptions
+****
+* pname:type is the elink:XrStructureType of this structure.
+* pname:next is code:NULL or a pointer to the next structure in a chain.
+* pname:propertyTypeCapacityInput is the capacity of the pname:propertyTypes
+  array, or 0 to indicate a request to retrieve the required capacity.
+* pname:propertyTypeCountOutput is a pointer to the count of
+  pname:propertyTypes written, or a pointer to the required capacity in the
+  case that pname:propertyTypeCapacityInput is insufficient.
+* pname:propertyTypes is an array of elink:XrCameraPropertyTypeBD values
+  filled in by the runtime.
+****
+
+include::{generated}/validity/structs/XrCameraPropertyTypesBD.adoc[]
+--
+
+===== Camera Property Type
+[open,refpage='XrCameraPropertyTypeBD',type='enums',desc='Type of camera property',xrefs='xrEnumerateCameraPropertyTypesBD']
+--
+The elink:XrCameraPropertyTypeBD enumeration is defined as:
+
+include::{generated}/api/enums/XrCameraPropertyTypeBD.adoc[]
+include::{generated}/api/enums/XrCameraPropertyTypeBD.comments.adoc[]
+
+elink:XrCameraPropertyTypeBD defines the categories of properties that a
+camera may: expose.
+--
+
+[open,refpage='XrCameraPropertyBaseHeaderBD',type='structs',desc='Base structure used to provide information of camera property',xrefs='xrGetCameraPropertiesBD']
+--
+The slink:XrCameraPropertyBaseHeaderBD structure is defined as:
+
+include::{generated}/api/structs/XrCameraPropertyBaseHeaderBD.adoc[]
+
+.Member Descriptions
+****
+* pname:type is the elink:XrStructureType of this structure.
+* pname:next is code:NULL or a pointer to the next structure in a structure
+  chain.
+****
+
+This structure is a base class for camera property structures.
+It is not used directly; instead, its child structures (e.g.
+slink:XrCameraPropertyFacingBD) are used with slink:XrCameraPropertiesBD to
+retrieve camera properties or filter enumerated cameras.
+
+include::{generated}/validity/structs/XrCameraPropertyBaseHeaderBD.adoc[]
+--
+
+====== Camera Facing
+[open,refpage='XrCameraFacingBD',type='enums',desc='Type of camera facing property',xrefs='xrEnumerateCameraPropertyTypesBD']
+--
+The elink:XrCameraFacingBD enumeration is defined as:
+
+include::{generated}/api/enums/XrCameraFacingBD.adoc[]
+include::{generated}/api/enums/XrCameraFacingBD.comments.adoc[]
+
+elink:XrCameraFacingBD describes the direction a camera is oriented.
+--
+
+[open,refpage='XrCameraPropertyFacingBD',type='structs',desc='Camera facing property info',xrefs='XrCameraPropertyBaseHeaderBD xrGetCameraPropertiesBD']
+--
+The slink:XrCameraPropertyFacingBD structure is defined as:
+
+include::{generated}/api/structs/XrCameraPropertyFacingBD.adoc[]
+
+.Member Descriptions
+****
+* pname:type is the elink:XrStructureType of this structure.
+* pname:next is code:NULL or a pointer to the next structure in a chain.
+* pname:facing is an elink:XrCameraFacingBD value indicating the camera's
+  orientation.
+****
+
+include::{generated}/validity/structs/XrCameraPropertyFacingBD.adoc[]
+--
+
+====== Camera Position
+[open,refpage='XrCameraPositionBD',type='enums',desc='Type of camera position property',xrefs='xrEnumerateCameraPropertyTypesBD']
+--
+The elink:XrCameraPositionBD enumeration is defined as:
+
+include::{generated}/api/enums/XrCameraPositionBD.adoc[]
+include::{generated}/api/enums/XrCameraPositionBD.comments.adoc[]
+
+elink:XrCameraPositionBD describes the physical location of a camera on the
+XR device (e.g. left, right).
+
+[NOTE]
+.Note
+====
+If the application uses ename:XR_CAMERA_POSITION_UNSPECIFIED_BD as a filter
+when calling flink:xrEnumerateAvailableCamerasBD, the runtime will only
+return cameras that the runtime has determined to be in "unspecified"
+position and it will not return other cameras.
+====
+
+--
+
+[open,refpage='XrCameraPropertyPositionBD',type='structs',desc='Camera position property info',xrefs='XrCameraPropertyBaseHeaderBD xrGetCameraPropertiesBD']
+--
+The slink:XrCameraPropertyPositionBD structure is defined as:
+
+include::{generated}/api/structs/XrCameraPropertyPositionBD.adoc[]
+
+.Member Descriptions
+****
+* pname:type is the elink:XrStructureType of this structure.
+* pname:next is code:NULL or a pointer to the next structure in a chain.
+* pname:position is an elink:XrCameraPositionBD value indicating the
+  camera's physical location.
+****
+
+include::{generated}/validity/structs/XrCameraPropertyPositionBD.adoc[]
+--
+
+====== Camera Type
+[open,refpage='XrCameraTypeBD',type='enums',desc='Type of camera property',xrefs='xrEnumerateCameraPropertyTypesBD']
+--
+The elink:XrCameraTypeBD enumeration is defined as:
+
+include::{generated}/api/enums/XrCameraTypeBD.adoc[]
+include::{generated}/api/enums/XrCameraTypeBD.comments.adoc[]
+
+elink:XrCameraTypeBD classifies the type of camera (e.g. RGB camera, depth
+camera).
+--
+
+[open,refpage='XrCameraPropertyCameraTypeBD',type='structs',desc='Camera type property info',xrefs='XrCameraPropertyBaseHeaderBD xrGetCameraPropertiesBD']
+--
+The slink:XrCameraPropertyCameraTypeBD structure is defined as:
+
+include::{generated}/api/structs/XrCameraPropertyCameraTypeBD.adoc[]
+
+.Member Descriptions
+****
+* pname:type is the elink:XrStructureType of this structure.
+* pname:next is code:NULL or a pointer to the next structure in a chain.
+* pname:cameraType is an elink:XrCameraTypeBD value indicating the camera's
+  classification.
+****
+
+include::{generated}/validity/structs/XrCameraPropertyCameraTypeBD.adoc[]
+--
+
+==== Get Camera Properties
+[open,refpage='xrGetCameraPropertiesBD',type='protos',desc='Get camera property data',xrefs='XrCameraPropertiesGetInfoBD XrCameraPropertiesBD']
+--
+The flink:xrGetCameraPropertiesBD function is defined as:
+
+include::{generated}/api/protos/xrGetCameraPropertiesBD.adoc[]
+
+.Parameter Descriptions
+****
+* pname:instance is a handle to an slink:XrInstance.
+* pname:getInfo is an slink:XrCameraPropertiesGetInfoBD structure containing
+  parameters for the property request.
+* pname:properties is an slink:XrCameraPropertiesBD structure to store the
+  retrieved properties.
+****
+
+This function returns the properties specified by the type of the structures
+passed in slink:XrCameraPropertiesBD::pname:properties.
+If pname:properties includes any elink:XrCameraPropertyTypeBD not supported
+by slink:XrCameraPropertiesGetInfoBD::pname:cameraId, the runtime must:
+return ename:XR_ERROR_CAMERA_PROPERTY_TYPE_INVALID_BD.
+
+include::{generated}/validity/protos/xrGetCameraPropertiesBD.adoc[]
+--
+
+[open,refpage='XrCameraPropertiesGetInfoBD',type='structs',desc='Information required to get camera properties',xrefs='xrGetCameraPropertiesBD']
+--
+The slink:XrCameraPropertiesGetInfoBD structure is defined as:
+
+include::{generated}/api/structs/XrCameraPropertiesGetInfoBD.adoc[]
+
+.Member Descriptions
+****
+* pname:type is the elink:XrStructureType of this structure.
+* pname:next is code:NULL or a pointer to the next structure in a chain.
+* pname:cameraId is the basetype:XrCameraIdBD of the camera to retrieve
+  properties for.
+****
+
+include::{generated}/validity/structs/XrCameraPropertiesGetInfoBD.adoc[]
+--
+
+[[bd_camera_image_camera_capabilities]]
+==== Camera Capabilities
+Applications can:
+
+1. Enumerate the types of capabilities supported by a camera.
+2. Retrieve supported values for specific capability types.
+3. Use capabilities as filters when enumerating available cameras.
+
+[open,refpage='xrEnumerateCameraCapabilityTypesBD',type='protos',desc='Enumerate supported camera capability types',xrefs='XrCameraCapabilityTypeBD XrCameraCapabilityTypesEnumerateInfoBD XrCameraCapabilityTypesBD']
+--
+The flink:xrEnumerateCameraCapabilityTypesBD function is defined as:
+
+include::{generated}/api/protos/xrEnumerateCameraCapabilityTypesBD.adoc[]
+
+.Parameter Descriptions
+****
+* pname:instance is a handle to an slink:XrInstance.
+* pname:enumerateInfo is a pointer to an
+  slink:XrCameraCapabilityTypesEnumerateInfoBD structure containing
+  enumeration parameters.
+* pname:capabilityTypes is a pointer to an slink:XrCameraCapabilityTypesBD
+  structure used to retrieve the capability types.
+****
+
+This function enumerates all capability types supported by the camera
+specified in pname:enumerateInfo.
+
+include::{generated}/validity/protos/xrEnumerateCameraCapabilityTypesBD.adoc[]
+--
+
+[open,refpage='XrCameraCapabilityTypesEnumerateInfoBD',type='structs',desc='Information required to enumerate camera capability types',xrefs='xrEnumerateCameraCapabilityTypesBD']
+--
+The slink:XrCameraCapabilityTypesEnumerateInfoBD structure is defined as:
+
+include::{generated}/api/structs/XrCameraCapabilityTypesEnumerateInfoBD.adoc[]
+
+.Member Descriptions
+****
+* pname:type is the elink:XrStructureType of this structure.
+* pname:next is code:NULL or a pointer to the next structure in a chain.
+* pname:cameraId is the basetype:XrCameraIdBD of the camera whose capability
+  types will be enumerated.
+****
+
+include::{generated}/validity/structs/XrCameraCapabilityTypesEnumerateInfoBD.adoc[]
+--
+
+[open,refpage='XrCameraCapabilityTypesBD',type='structs',desc='A list of camera capability types',xrefs='xrEnumerateCameraCapabilityTypesBD']
+--
+The slink:XrCameraCapabilityTypesBD structure is defined as:
+
+include::{generated}/api/structs/XrCameraCapabilityTypesBD.adoc[]
+
+.Member Descriptions
+****
+* pname:type is the elink:XrStructureType of this structure.
+* pname:next is code:NULL or a pointer to the next structure in a chain.
+* pname:capabilityTypeCapacityInput is the capacity of the
+  pname:capabilityTypes array, or 0 to indicate a request to retrieve the
+  required capacity.
+* pname:capabilityTypeCountOutput is the count of pname:capabilityTypes
+  written, or the required capacity in the case that
+  pname:capabilityTypeCapacityInput is insufficient.
+* pname:capabilityTypes is an array of elink:XrCameraCapabilityTypeBD values
+  filled in by the runtime.
+****
+
+include::{generated}/validity/structs/XrCameraCapabilityTypesBD.adoc[]
+--
+
+===== Camera Capability Type
+[open,refpage='XrCameraCapabilityTypeBD',type='enums',desc='Type of camera capability',xrefs='xrEnumerateCameraCapabilityTypesBD']
+--
+The elink:XrCameraCapabilityTypeBD enumeration is defined as:
+
+include::{generated}/api/enums/XrCameraCapabilityTypeBD.adoc[]
+include::{generated}/api/enums/XrCameraCapabilityTypeBD.comments.adoc[]
+
+elink:XrCameraCapabilityTypeBD defines the categories of configurable
+features supported by a camera (e.g. resolution, frame rate).
+
+For each elink:XrCameraCapabilityTypeBD, two related structures exist:
+
+. A child structure of slink:XrCameraSupportedCapabilityBaseHeaderBD:
+  Describes all supported values for the capability.
+. A child structure of slink:XrCameraCapabilityBaseHeaderBD: Specifies a
+  single value for the capability which can: be used for configuration.
+--
+
+[open,refpage='XrCameraSupportedCapabilityBaseHeaderBD',type='structs',desc='Base structure used to describe the camera supported capability values for a specific capability type',xrefs='xrGetCameraSupportedCapabilitiesBD XrCameraSupportedCapabilitiesBD']
+--
+The slink:XrCameraSupportedCapabilityBaseHeaderBD structure is defined as:
+
+include::{generated}/api/structs/XrCameraSupportedCapabilityBaseHeaderBD.adoc[]
+
+.Member Descriptions
+****
+* pname:type is the elink:XrStructureType of this structure.
+* pname:next is code:NULL or a pointer to the next structure in a chain.
+****
+
+This structure is a base class for supported capability structures.
+It is not used directly; instead, its child structures (e.g.
+slink:XrCameraSupportedCapabilityImageResolutionAndFrameRateBD) describe
+supported values for specific capabilities.
+
+include::{generated}/validity/structs/XrCameraSupportedCapabilityBaseHeaderBD.adoc[]
+--
+
+[open,refpage='XrCameraCapabilityBaseHeaderBD',type='structs',desc='Base structure used to describe a specific value for a specific capability type',xrefs='XrCameraCapabilitiesBD']
+--
+The slink:XrCameraCapabilityBaseHeaderBD structure is defined as:
+
+include::{generated}/api/structs/XrCameraCapabilityBaseHeaderBD.adoc[]
+
+.Member Descriptions
+****
+* pname:type is the elink:XrStructureType of this structure.
+* pname:next is code:NULL or a pointer to the next structure in a chain.
+****
+
+This structure is a base class for capability configuration structures.
+It is not used directly; instead, its child structures (e.g.
+slink:XrCameraCapabilityImageResolutionAndFrameRateBD) specify a single
+value for a specific capability.
+
+include::{generated}/validity/structs/XrCameraCapabilityBaseHeaderBD.adoc[]
+--
+
+====== Camera Image Resolution and Frame Rate
+The runtime may: support multiple combinations of image resolutions and
+frame rates for a single camera.
+Resolution is represented using slink:XrExtent2Di (width and height in
+pixels).
+Frame rate is represented using an integer.
+
+[open,refpage='XrCameraImageResolutionAndFrameRateBD',type='structs',desc='Image resolution and frame rate of a camera',xrefs='XrCameraSupportedCapabilityImageResolutionAndFrameRateBD XrCameraCapabilityImageResolutionAndFrameRateBD']
+--
+The slink:XrCameraImageResolutionAndFrameRateBD structure is defined as:
+
+include::{generated}/api/structs/XrCameraImageResolutionAndFrameRateBD.adoc[]
+
+This structure describes a single combination of image resolution and frame
+rate.
+
+.Member Descriptions
+****
+* pname:resolution is an slink:XrExtent2Di value representing the
+  resolution.
+* pname:frameRate is an integer value representing the frame rate.
+****
+
+include::{generated}/validity/structs/XrCameraImageResolutionAndFrameRateBD.adoc[]
+--
+
+[open,refpage='XrCameraSupportedCapabilityImageResolutionAndFrameRateBD',type='structs',desc='Supported image resolutions and frame rates of a camera',xrefs='xrGetCameraSupportedCapabilitiesBD XrCameraSupportedCapabilitiesBD']
+--
+The slink:XrCameraSupportedCapabilityImageResolutionAndFrameRateBD structure
+is defined as:
+
+include::{generated}/api/structs/XrCameraSupportedCapabilityImageResolutionAndFrameRateBD.adoc[]
+
+This structure lists all image resolution and frame rate combinations
+supported by a camera.
+
+.Member Descriptions
+****
+* pname:type is the elink:XrStructureType of this structure.
+* pname:next is code:NULL or a pointer to the next structure in a chain.
+* pname:resolutionAndFrameRateCapacityInput is the capacity of the
+  pname:resolutionAndFrameRates array, or 0 to indicate a request to
+  retrieve the required capacity.
+* pname:resolutionAndFrameRateCountOutput is the count of
+  pname:resolutionAndFrameRates written, or the required capacity in the
+  case that pname:resolutionAndFrameRateCapacityInput is insufficient.
+* pname:resolutionAndFrameRates is an array of
+  slink:XrCameraImageResolutionAndFrameRateBD structures filled in by the
+  runtime representing supported resolution and frame rate combinations.
+* See <<fundamentals-buffer-size-parameters, Buffer Size Parameters>>
+  chapter for a detailed description of retrieving the required
+  pname:resolutionAndFrameRates size.
+****
+
+include::{generated}/validity/structs/XrCameraSupportedCapabilityImageResolutionAndFrameRateBD.adoc[]
+--
+
+[open,refpage='XrCameraCapabilityImageResolutionAndFrameRateBD',type='structs',desc='An image resolution and frame rate combination',xrefs='XrCameraCapabilitiesBD']
+--
+The slink:XrCameraCapabilityImageResolutionAndFrameRateBD structure is
+defined as:
+
+include::{generated}/api/structs/XrCameraCapabilityImageResolutionAndFrameRateBD.adoc[]
+
+This structure specifies a single image resolution and frame rate
+combination to use for an slink:XrCameraCaptureSessionBD.
+
+.Member Descriptions
+****
+* pname:type is the elink:XrStructureType of this structure.
+* pname:next is code:NULL or a pointer to the next structure in a chain.
+* pname:resolution is an slink:XrExtent2Di value representing the desired
+  resolution.
+* pname:frameRate is an integer value representing the desired frame rate.
+****
+
+Note that the pname:frameRate specified when creating an
+slink:XrCameraCaptureSessionBD represents an intended frame rate.
+The runtime may: be unable to always provide images at this exact rate.
+For example, when acquiring data from multiple cameras simultaneously, the
+frame rates may: be locked to a common rate, or when system load increases,
+the actual frame rate may: drop below the configured value.
+
+include::{generated}/validity/structs/XrCameraCapabilityImageResolutionAndFrameRateBD.adoc[]
+--
+
+====== Camera Data Transfer Type
+The runtime may: support multiple data transfer methods for a single camera.
+Transfer types are represented using elink:XrCameraDataTransferTypeBD.
+
+[open,refpage='XrCameraDataTransferTypeBD',type='enums',desc='Type of camera data transfer',xrefs='XrCameraSupportedCapabilityDataTransferTypeBD XrCameraCapabilityDataTransferTypeBD']
+--
+The elink:XrCameraDataTransferTypeBD enumeration is defined as:
+
+include::{generated}/api/enums/XrCameraDataTransferTypeBD.adoc[]
+include::{generated}/api/enums/XrCameraDataTransferTypeBD.comments.adoc[]
+
+elink:XrCameraDataTransferTypeBD describes how image data is transferred to
+the application (e.g. CPU buffer, GPU texture).
+--
+
+[open,refpage='XrCameraSupportedCapabilityDataTransferTypeBD',type='structs',desc='Supported data transfer types of a camera',xrefs='xrGetCameraSupportedCapabilitiesBD XrCameraSupportedCapabilitiesBD']
+--
+The slink:XrCameraSupportedCapabilityDataTransferTypeBD structure is defined
+as:
+
+include::{generated}/api/structs/XrCameraSupportedCapabilityDataTransferTypeBD.adoc[]
+
+This structure lists all data transfer types supported by a camera.
+
+.Member Descriptions
+****
+* pname:type is the elink:XrStructureType of this structure.
+* pname:next is code:NULL or a pointer to the next structure in a chain.
+* pname:transferTypeCapacityInput is the capacity of the pname:transferTypes
+  array, or 0 to indicate a request to retrieve the required capacity.
+* pname:transferTypeCountOutput is the count of pname:transferTypes written,
+  or the required capacity in the case that pname:transferTypeCapacityInput
+  is insufficient.
+* pname:transferTypes is an array of elink:XrCameraDataTransferTypeBD values
+  filled in by the runtime.
+* See <<fundamentals-buffer-size-parameters, Buffer Size Parameters>>
+  chapter for a detailed description of retrieving the required
+  pname:transferTypes size.
+****
+
+include::{generated}/validity/structs/XrCameraSupportedCapabilityDataTransferTypeBD.adoc[]
+--
+
+[open,refpage='XrCameraCapabilityDataTransferTypeBD',type='structs',desc='A data transfer type for camera data',xrefs='XrCameraCapabilitiesBD']
+--
+The slink:XrCameraCapabilityDataTransferTypeBD structure is defined as:
+
+include::{generated}/api/structs/XrCameraCapabilityDataTransferTypeBD.adoc[]
+
+This structure specifies a single data transfer type to use for a Camera
+Capture Session.
+
+.Member Descriptions
+****
+* pname:type is the elink:XrStructureType of this structure.
+* pname:next is code:NULL or a pointer to the next structure in a chain.
+* pname:transferType is an elink:XrCameraDataTransferTypeBD value
+  representing the desired transfer method.
+****
+
+include::{generated}/validity/structs/XrCameraCapabilityDataTransferTypeBD.adoc[]
+--
+
+====== Camera Image Format
+The runtime may: support multiple image formats for a single camera.
+Formats are represented using elink:XrCameraImageFormatBD.
+
+[open,refpage='XrCameraImageFormatBD',type='enums',desc='Image format of a camera',xrefs='XrCameraSupportedCapabilityImageFormatBD XrCameraCapabilityImageFormatBD']
+--
+The elink:XrCameraImageFormatBD enumeration is defined as:
+
+include::{generated}/api/enums/XrCameraImageFormatBD.adoc[]
+include::{generated}/api/enums/XrCameraImageFormatBD.comments.adoc[]
+
+elink:XrCameraImageFormatBD describes the pixel format of image data (e.g.
+RGBA8888).
+--
+
+[open,refpage='XrCameraSupportedCapabilityImageFormatBD',type='structs',desc='Supported image formats of a camera',xrefs='xrGetCameraSupportedCapabilitiesBD XrCameraSupportedCapabilitiesBD']
+--
+The slink:XrCameraSupportedCapabilityImageFormatBD structure is defined as:
+
+include::{generated}/api/structs/XrCameraSupportedCapabilityImageFormatBD.adoc[]
+
+This structure lists all image formats supported by a camera.
+
+.Member Descriptions
+****
+* pname:type is the elink:XrStructureType of this structure.
+* pname:next is code:NULL or a pointer to the next structure in a chain.
+* pname:formatCapacityInput is the capacity of the pname:formats array, or 0
+  to indicate a request to retrieve the required capacity.
+* pname:formatCountOutput is the count of pname:formats written, or the
+  required capacity in the case that pname:formatCapacityInput is
+  insufficient.
+* pname:formats is an array of elink:XrCameraImageFormatBD values filled in
+  by the runtime.
+* See <<fundamentals-buffer-size-parameters, Buffer Size Parameters>>
+  chapter for a detailed description of retrieving the required
+  pname:formats size.
+****
+
+include::{generated}/validity/structs/XrCameraSupportedCapabilityImageFormatBD.adoc[]
+--
+
+[open,refpage='XrCameraCapabilityImageFormatBD',type='structs',desc='An image format for camera data',xrefs='XrCameraCapabilitiesBD']
+--
+The slink:XrCameraCapabilityImageFormatBD structure is defined as:
+
+include::{generated}/api/structs/XrCameraCapabilityImageFormatBD.adoc[]
+
+This structure specifies a single image format to use for a Camera Capture
+Session.
+
+.Member Descriptions
+****
+* pname:type is the elink:XrStructureType of this structure.
+* pname:next is code:NULL or a pointer to the next structure in a chain.
+* pname:format is an elink:XrCameraImageFormatBD value representing the
+  desired pixel format.
+****
+
+include::{generated}/validity/structs/XrCameraCapabilityImageFormatBD.adoc[]
+--
+
+====== Camera Model
+The runtime may: support multiple camera models for a single camera.
+Models are represented using elink:XrCameraModelBD.
+
+[open,refpage='XrCameraModelBD',type='enums',desc='Camera model of a camera',xrefs='XrCameraSupportedCapabilityCameraModelBD XrCameraCapabilityCameraModelBD']
+--
+The elink:XrCameraModelBD enumeration is defined as:
+
+include::{generated}/api/enums/XrCameraModelBD.adoc[]
+include::{generated}/api/enums/XrCameraModelBD.comments.adoc[]
+
+The applications can: use the elink:XrCameraModelBD as a filter when calling
+flink:xrEnumerateAvailableCamerasBD to enumerate the cameras that support
+the desired model.
+--
+
+[open,refpage='XrCameraSupportedCapabilityCameraModelBD',type='structs',desc='Supported camera models of a camera',xrefs='xrGetCameraSupportedCapabilitiesBD XrCameraSupportedCapabilitiesBD']
+--
+The slink:XrCameraSupportedCapabilityCameraModelBD structure is defined as:
+
+include::{generated}/api/structs/XrCameraSupportedCapabilityCameraModelBD.adoc[]
+
+This structure lists all camera models supported by a camera.
+
+.Member Descriptions
+****
+* pname:type is the elink:XrStructureType of this structure.
+* pname:next is code:NULL or a pointer to the next structure in a chain.
+* pname:modelCapacityInput is the capacity of the pname:models array, or 0
+  to indicate a request to retrieve the required capacity.
+* pname:modelCountOutput is the count of pname:models written, or the
+  required capacity in the case that pname:modelCapacityInput is
+  insufficient.
+* pname:models is an array of elink:XrCameraModelBD values filled in by the
+  runtime.
+* See <<fundamentals-buffer-size-parameters, Buffer Size Parameters>>
+  chapter for a detailed description of retrieving the required pname:models
+  size.
+****
+
+include::{generated}/validity/structs/XrCameraSupportedCapabilityCameraModelBD.adoc[]
+--
+
+[open,refpage='XrCameraCapabilityCameraModelBD',type='structs',desc='A geometric camera model capability structure',xrefs='XrCameraCapabilitiesBD']
+--
+The slink:XrCameraCapabilityCameraModelBD structure is defined as:
+
+include::{generated}/api/structs/XrCameraCapabilityCameraModelBD.adoc[]
+
+This structure specifies a single camera model to use for a Camera Capture
+Session.
+
+.Member Descriptions
+****
+* pname:type is the elink:XrStructureType of this structure.
+* pname:next is code:NULL or a pointer to the next structure in a chain.
+* pname:model is an elink:XrCameraModelBD value representing the desired
+  geometric model.
+****
+
+include::{generated}/validity/structs/XrCameraCapabilityCameraModelBD.adoc[]
+--
+
+==== Get Supported Camera Capabilities
+[open,refpage='xrGetCameraSupportedCapabilitiesBD',type='protos',desc='Get supported capabilities of a camera',xrefs='XrCameraSupportedCapabilitiesGetInfoBD XrCameraSupportedCapabilitiesBD']
+--
+The flink:xrGetCameraSupportedCapabilitiesBD function is defined as:
+
+include::{generated}/api/protos/xrGetCameraSupportedCapabilitiesBD.adoc[]
+
+.Parameter Descriptions
+****
+* pname:instance is a handle to an slink:XrInstance.
+* pname:getInfo is an slink:XrCameraSupportedCapabilitiesGetInfoBD structure
+  containing parameters for the capability request.
+* pname:capabilities is an slink:XrCameraSupportedCapabilitiesBD structure
+  to store the retrieved capabilities.
+****
+
+This function returns the supported capabilities specified in
+pname:capabilities.
+If pname:capabilities includes any elink:XrCameraCapabilityTypeBD not
+supported by slink:XrCameraSupportedCapabilitiesGetInfoBD::pname:id, the
+runtime must: return ename:XR_ERROR_CAMERA_CAPABILITY_TYPE_INVALID_BD.
+
+include::{generated}/validity/protos/xrGetCameraSupportedCapabilitiesBD.adoc[]
+--
+
+[open,refpage='XrCameraSupportedCapabilitiesGetInfoBD',type='structs',desc='Information required to get camera capabilities',xrefs='xrGetCameraSupportedCapabilitiesBD']
+--
+The slink:XrCameraSupportedCapabilitiesGetInfoBD structure is defined as:
+
+include::{generated}/api/structs/XrCameraSupportedCapabilitiesGetInfoBD.adoc[]
+
+.Member Descriptions
+****
+* pname:type is the elink:XrStructureType of this structure.
+* pname:next is code:NULL or a pointer to the next structure in a chain.
+* pname:id is the basetype:XrCameraIdBD of the camera to retrieve
+  capabilities for.
+****
+
+include::{generated}/validity/structs/XrCameraSupportedCapabilitiesGetInfoBD.adoc[]
+--
+
+[open,refpage='XrCameraSupportedCapabilitiesBD',type='structs',desc='A number of supported camera capabilities',xrefs='xrGetCameraSupportedCapabilitiesBD']
+--
+The slink:XrCameraSupportedCapabilitiesBD structure is defined as:
+
+include::{generated}/api/structs/XrCameraSupportedCapabilitiesBD.adoc[]
+
+.Member Descriptions
+****
+* pname:type is the elink:XrStructureType of this structure.
+* pname:next is code:NULL or a pointer to the next structure in a chain.
+* pname:capabilityCount is the number of supported capability structures in
+  the pname:capabilities array.
+* pname:capabilities is an array of pointers to child structures of
+  slink:XrCameraSupportedCapabilityBaseHeaderBD.
+****
+
+include::{generated}/validity/structs/XrCameraSupportedCapabilitiesBD.adoc[]
+--
+
+==== Create Camera Device
+Applications create an slink:XrCameraDeviceBD handle to initialize a camera.
+This operation is asynchronous and may: take time to complete.
+
+[open,refpage='xrCreateCameraDeviceAsyncBD',type='protos',desc='Create the camera device handle asynchronously',xrefs='XrCameraDeviceCreateInfoBD']
+--
+The flink:xrCreateCameraDeviceAsyncBD function is defined as:
+
+include::{generated}/api/protos/xrCreateCameraDeviceAsyncBD.adoc[]
+
+.Parameter Descriptions
+****
+* pname:instance is a handle to an slink:XrInstance.
+* pname:createInfo is an slink:XrCameraDeviceCreateInfoBD structure
+  containing creation parameters.
+* pname:future is an output parameter for an basetype:XrFutureEXT to track
+  the asynchronous operation.
+****
+
+This function starts an asynchronous operation and creates a corresponding
+basetype:XrFutureEXT, usable with flink:xrPollFutureEXT and related
+functions.
+The return value of this function only indicates whether the parameters were
+acceptable to schedule the asynchronous operation.
+The corresponding completion function is
+flink:xrCreateCameraDeviceCompleteBD, usable when a future from this
+function is in the <<XrFutureStateEXT,READY>> state, with outputs populated
+by that function in the completion structure
+slink:XrCreateCameraDeviceCompletionBD.
+
+include::{generated}/validity/protos/xrCreateCameraDeviceAsyncBD.adoc[]
+--
+
+[open,refpage='XrCameraDeviceCreateInfoBD',type='structs',desc='Information to create a camera device',xrefs='xrCreateCameraDeviceAsyncBD']
+--
+The slink:XrCameraDeviceCreateInfoBD structure is defined as:
+
+include::{generated}/api/structs/XrCameraDeviceCreateInfoBD.adoc[]
+
+.Member Descriptions
+****
+* pname:type is the elink:XrStructureType of this structure.
+* pname:next is code:NULL or a pointer to the next structure in a chain.
+  No extensions currently define structures for this field.
+* pname:cameraId is the basetype:XrCameraIdBD of the camera to initialize.
+****
+
+This structure describes the camera to initialize with
+flink:xrCreateCameraDeviceAsyncBD.
+
+include::{generated}/validity/structs/XrCameraDeviceCreateInfoBD.adoc[]
+--
+
+[open,refpage='xrCreateCameraDeviceCompleteBD',type='protos',desc='Complete the asynchronous camera device creation',xrefs='xrCreateCameraDeviceAsyncBD XrCreateCameraDeviceCompletionBD']
+--
+The flink:xrCreateCameraDeviceCompleteBD function is defined as:
+
+include::{generated}/api/protos/xrCreateCameraDeviceCompleteBD.adoc[]
+
+.Parameter Descriptions
+****
+* pname:instance is a handle to an slink:XrInstance.
+* pname:future is the basetype:XrFutureEXT returned by
+  flink:xrCreateCameraDeviceAsyncBD.
+* pname:completion is an output parameter for an
+  slink:XrCreateCameraDeviceCompletionBD structure containing the result.
+****
+
+This is the completion function corresponding to the operation started by
+flink:xrCreateCameraDeviceAsyncBD.
+Do not call until the pname:future is <<XrFutureStateEXT,READY>>.
+
+The runtime must: return ename:XR_ERROR_FUTURE_PENDING_EXT if pname:future
+is not in the ename:READY state.
+The runtime must: return ename:XR_ERROR_FUTURE_INVALID_EXT if pname:future
+has already been completed or cancelled.
+
+The slink:XrFutureCompletionBaseHeaderEXT structure is defined in
+apiext:XR_EXT_future.
+
+include::{generated}/validity/protos/xrCreateCameraDeviceCompleteBD.adoc[]
+--
+
+[open,refpage='XrCreateCameraDeviceCompletionBD',type='structs',desc='Completion structure for camera device creation',xrefs='xrCreateCameraDeviceAsyncBD xrCreateCameraDeviceCompleteBD']
+--
+The slink:XrCreateCameraDeviceCompletionBD structure is defined as:
+
+include::{generated}/api/structs/XrCreateCameraDeviceCompletionBD.adoc[]
+
+.Member Descriptions
+****
+* pname:type is the elink:XrStructureType of this structure.
+* pname:next is code:NULL or a pointer to the next structure in a chain.
+* pname:futureResult is the elink:XrResult of the asynchronous creation
+  operation.
+* pname:device is the created slink:XrCameraDeviceBD handle.
+****
+
+The pname:device is the created slink:XrCameraDeviceBD handle and it is
+valid only if pname:futureResult is a success code.
+
+.Future Return Codes
+****
+pname:futureResult values:
+
+<<fundamentals-successcodes,Success>>::
+* ename:XR_SUCCESS
+
+<<fundamentals-errorcodes,Failure>>::
+* ename:XR_ERROR_RUNTIME_FAILURE
+* ename:XR_ERROR_INSTANCE_LOST
+* ename:XR_ERROR_PERMISSION_INSUFFICIENT
+* ename:XR_ERROR_OUT_OF_MEMORY
+* ename:XR_ERROR_LIMIT_REACHED
+****
+
+include::{generated}/validity/structs/XrCreateCameraDeviceCompletionBD.adoc[]
+--
+
+==== Destroy Camera Device
+[open,refpage='xrDestroyCameraDeviceBD',type='protos',desc='Destroy a camera device handle',xrefs='xrCreateCameraDeviceAsyncBD XrCameraDeviceBD']
+--
+The flink:xrDestroyCameraDeviceBD function is defined as:
+
+include::{generated}/api/protos/xrDestroyCameraDeviceBD.adoc[]
+
+.Parameter Descriptions
+****
+* pname:device is the slink:XrCameraDeviceBD handle to destroy.
+****
+
+Applications call this function to release resources associated with a
+camera device.
+
+Resources for a destroyed slink:XrCameraDeviceBD must: be freed when the
+associated slink:XrInstance is destroyed.
+Destroying an slink:XrCameraDeviceBD must: implicitly destroy all associated
+slink:XrCameraCaptureSessionBD handles.
+
+include::{generated}/validity/protos/xrDestroyCameraDeviceBD.adoc[]
+--
+
+==== Create Camera Capture Session
+Applications create an slink:XrCameraCaptureSessionBD handle to configure
+and capture images from a camera.
+This operation is asynchronous.
+
+[open,refpage='XrCameraCaptureSessionBD',type='handles',desc='Represents a camera capture session']
+--
+include::{generated}/api/handles/XrCameraCaptureSessionBD.adoc[]
+
+The slink:XrCameraCaptureSessionBD handle represents a configured stream for
+capturing images from a camera.
+Applications specify capabilities (e.g. resolution and frame rate) when
+creating the session.
+The runtime may: limit the number of concurrent capture sessions per camera;
+when exceeding this limit, runtime must: return ename:XR_ERROR_LIMIT_REACHED
+when flink:xrCreateCameraCaptureSessionAsyncBD is called.
+--
+
+[open,refpage='xrCreateCameraCaptureSessionAsyncBD',type='protos',desc='Create the camera capture session handle asynchronously',xrefs='XrCameraCaptureSessionCreateInfoBD']
+--
+The flink:xrCreateCameraCaptureSessionAsyncBD function is defined as:
+
+include::{generated}/api/protos/xrCreateCameraCaptureSessionAsyncBD.adoc[]
+
+.Parameter Descriptions
+****
+* pname:session is a handle to an slink:XrSession.
+* pname:createInfo is an slink:XrCameraCaptureSessionCreateInfoBD structure
+  containing creation parameters.
+* pname:future is an output parameter for an basetype:XrFutureEXT to track
+  the asynchronous operation.
+****
+
+This function starts an asynchronous operation and creates a corresponding
+basetype:XrFutureEXT, usable with flink:xrPollFutureEXT and related
+functions.
+The return value of this function only indicates whether the parameters were
+acceptable to schedule the asynchronous operation.
+The corresponding completion function is
+flink:xrCreateCameraCaptureSessionCompleteBD, usable when a future from this
+function is in the <<XrFutureStateEXT,READY>> state, with outputs populated
+by that function in the completion structure
+slink:XrCreateCameraCaptureSessionCompletionBD.
+
+include::{generated}/validity/protos/xrCreateCameraCaptureSessionAsyncBD.adoc[]
+--
+
+[open,refpage='XrCameraCaptureSessionCreateInfoBD',type='structs',desc='Information to create a camera capture session',xrefs='xrCreateCameraCaptureSessionAsyncBD']
+--
+The slink:XrCameraCaptureSessionCreateInfoBD structure is defined as:
+
+include::{generated}/api/structs/XrCameraCaptureSessionCreateInfoBD.adoc[]
+
+.Member Descriptions
+****
+* pname:type is the elink:XrStructureType of this structure.
+* pname:next is code:NULL or a pointer to the next structure in a chain.
+  No extensions currently define structures for this field.
+* pname:camera is the slink:XrCameraDeviceBD handle to associate with the
+  session.
+* pname:configCount is the number of capability configurations in the
+  pname:configs array.
+* pname:configs is an array of pointers to
+  slink:XrCameraCapabilityBaseHeaderBD child structures (e.g.
+  slink:XrCameraCapabilityImageResolutionAndFrameRateBD), specifying session
+  configurations.
+****
+
+This structure describes the configuration for a camera capture session.
+The slink:XrCameraDeviceBD specified by pname:camera must: have been created
+from the same slink:XrInstance used to create the slink:XrSession passed to
+flink:xrCreateCameraCaptureSessionAsyncBD.
+
+include::{generated}/validity/structs/XrCameraCaptureSessionCreateInfoBD.adoc[]
+--
+
+[open,refpage='xrCreateCameraCaptureSessionCompleteBD',type='protos',desc='Complete the asynchronous capture session creation',xrefs='xrCreateCameraCaptureSessionAsyncBD XrCreateCameraCaptureSessionCompletionBD']
+--
+The flink:xrCreateCameraCaptureSessionCompleteBD function is defined as:
+
+include::{generated}/api/protos/xrCreateCameraCaptureSessionCompleteBD.adoc[]
+
+.Parameter Descriptions
+****
+* pname:session is a handle to an slink:XrSession.
+* pname:future is the basetype:XrFutureEXT returned by
+  flink:xrCreateCameraCaptureSessionAsyncBD.
+* pname:completion is an output parameter for an
+  slink:XrCreateCameraCaptureSessionCompletionBD structure containing the
+  result.
+****
+
+This is the completion function corresponding to the operation started by
+flink:xrCreateCameraCaptureSessionAsyncBD.
+Do not call until the pname:future is <<XrFutureStateEXT,READY>>.
+
+The runtime must: return ename:XR_ERROR_FUTURE_PENDING_EXT if pname:future
+is not in the ename:READY state.
+The runtime must: return ename:XR_ERROR_FUTURE_INVALID_EXT if pname:future
+has already been completed or cancelled.
+
+include::{generated}/validity/protos/xrCreateCameraCaptureSessionCompleteBD.adoc[]
+--
+
+[open,refpage='XrCreateCameraCaptureSessionCompletionBD',type='structs',desc='Completion structure for capture session creation',xrefs='xrCreateCameraCaptureSessionAsyncBD xrCreateCameraCaptureSessionCompleteBD']
+--
+The slink:XrCreateCameraCaptureSessionCompletionBD structure is defined as:
+
+include::{generated}/api/structs/XrCreateCameraCaptureSessionCompletionBD.adoc[]
+
+.Member Descriptions
+****
+* pname:type is the elink:XrStructureType of this structure.
+* pname:next is code:NULL or a pointer to the next structure in a chain.
+* pname:futureResult is the elink:XrResult of the asynchronous creation
+  operation.
+* pname:captureSession is the created slink:XrCameraCaptureSessionBD handle
+  (valid only if pname:futureResult is a success code).
+****
+The pname:captureSession is the created slink:XrCameraCaptureSessionBD
+handle and it is valid only if pname:futureResult is a success code.
+
+.Future Return Codes
+****
+pname:futureResult values:
+
+<<fundamentals-successcodes,Success>>::
+* ename:XR_SUCCESS
+* ename:XR_SESSION_LOSS_PENDING
+
+<<fundamentals-errorcodes,Failure>>::
+* ename:XR_ERROR_RUNTIME_FAILURE
+* ename:XR_ERROR_INSTANCE_LOST
+* ename:XR_ERROR_PERMISSION_INSUFFICIENT
+* ename:XR_ERROR_OUT_OF_MEMORY
+* ename:XR_ERROR_LIMIT_REACHED
+****
+
+include::{generated}/validity/structs/XrCreateCameraCaptureSessionCompletionBD.adoc[]
+--
+
+==== Destroy Camera Capture Session
+[open,refpage='xrDestroyCameraCaptureSessionBD',type='protos',desc='Destroy a camera capture session handle',xrefs='xrCreateCameraCaptureSessionAsyncBD XrCameraCaptureSessionBD']
+--
+The flink:xrDestroyCameraCaptureSessionBD function is defined as:
+
+include::{generated}/api/protos/xrDestroyCameraCaptureSessionBD.adoc[]
+
+.Parameter Descriptions
+****
+* pname:captureSession is the slink:XrCameraCaptureSessionBD handle to
+  destroy.
+****
+
+Applications call this function to release resources associated with a
+capture session.
+
+Resources for a destroyed slink:XrCameraCaptureSessionBD must: be freed when
+the associated slink:XrSession or slink:XrCameraDeviceBD is destroyed.
+Destroying a session must: implicitly release all associated resources
+related to basetype:XrCameraImageIdBD acquired from this session.
+
+include::{generated}/validity/protos/xrDestroyCameraCaptureSessionBD.adoc[]
+--
+
+==== Begin Camera Capture
+[open,refpage='xrBeginCameraCaptureBD',type='protos',desc='Start the camera capture session',xrefs='XrCameraCaptureBeginInfoBD XrCameraCaptureSessionBD']
+--
+The flink:xrBeginCameraCaptureBD function is defined as:
+
+include::{generated}/api/protos/xrBeginCameraCaptureBD.adoc[]
+
+.Parameter Descriptions
+****
+* pname:captureSession is a handle to an slink:XrCameraCaptureSessionBD.
+* pname:beginInfo is an slink:XrCameraCaptureBeginInfoBD structure
+  containing start parameters.
+****
+
+Applications call this function to start image capture for a session.
+The runtime must: not update images until this function is successfully
+called.
+
+After this function is called successfully, the capture session is in the
+"capturing" state.
+If the capture session is already capturing, the runtime must: return
+ename:XR_ERROR_CAMERA_CAPTURE_SESSION_CAPTURING_BD when this function is
+called.
+
+include::{generated}/validity/protos/xrBeginCameraCaptureBD.adoc[]
+--
+
+[open,refpage='XrCameraCaptureBeginInfoBD',type='structs',desc='Information to start a camera capture session',xrefs='xrBeginCameraCaptureBD']
+--
+The slink:XrCameraCaptureBeginInfoBD structure is defined as:
+
+include::{generated}/api/structs/XrCameraCaptureBeginInfoBD.adoc[]
+
+.Member Descriptions
+****
+* pname:type is the elink:XrStructureType of this structure.
+* pname:next is code:NULL or a pointer to the next structure in a chain.
+****
+
+This structure describes parameters to start a camera capture session.
+This structure is for future extension.
+
+include::{generated}/validity/structs/XrCameraCaptureBeginInfoBD.adoc[]
+--
+
+==== End Camera Capture
+[open,refpage='xrEndCameraCaptureBD',type='protos',desc='Stop the camera capture session',xrefs='XrCameraCaptureSessionBD']
+--
+The flink:xrEndCameraCaptureBD function is defined as:
+
+include::{generated}/api/protos/xrEndCameraCaptureBD.adoc[]
+
+.Parameter Descriptions
+****
+* pname:captureSession is a handle to an slink:XrCameraCaptureSessionBD.
+****
+
+Applications call this function to stop image capture for a session.
+The runtime must: not update images after this function is successfully
+called.
+
+If the capture session is already ended, the runtime must: return
+ename:XR_ERROR_CAMERA_CAPTURE_SESSION_NOT_CAPTURING_BD when this function is
+called.
+
+include::{generated}/validity/protos/xrEndCameraCaptureBD.adoc[]
+--
+
+==== Acquire Captured Image
+[open,refpage='XrCameraImageIdBD',type='basetypes',desc='ID referring to a camera image']
+--
+include::{generated}/api/basetypes/XrCameraImageIdBD.adoc[]
+
+basetype:XrCameraImageIdBD identifies a captured image from a capture
+session.
+A valid basetype:XrCameraImageIdBD is tied to an
+slink:XrCameraCaptureSessionBD, and the runtime must: not reuse the same ID
+for different images within the same capture session.
+--
+
+[open,refpage='xrAcquireCameraImageBD',type='protos',desc='Acquire the latest captured image',xrefs='XrCameraImageAcquireInfoBD XrCameraImageBD']
+--
+The flink:xrAcquireCameraImageBD function is defined as:
+
+include::{generated}/api/protos/xrAcquireCameraImageBD.adoc[]
+
+.Parameter Descriptions
+****
+* pname:captureSession is a handle to an slink:XrCameraCaptureSessionBD that
+  must: be in capturing state.
+* pname:acquireInfo is an slink:XrCameraImageAcquireInfoBD structure
+  containing acquisition parameters.
+* pname:image is an output parameter for an slink:XrCameraImageBD structure
+  describing the acquired image.
+****
+
+Applications call this function to acquire the latest image from a capturing
+session.
+
+The runtime must: return
+ename:XR_ERROR_CAMERA_CAPTURE_SESSION_NOT_CAPTURING_BD if
+flink:xrBeginCameraCaptureBD has not been called successfully.
+
+The runtime may: limit the number of concurrently acquired images.
+Exceeding this limit may: prevent acquiring new image updates, in which case
+the runtime must: return ename:XR_ERROR_IMAGE_BUFFER_EXHAUSTED_BD for
+flink:xrAcquireCameraImageBD calls.
+
+The application should: release a successfully acquired image by calling
+flink:xrReleaseCameraImageBD once it is not needed.
+
+include::{generated}/validity/protos/xrAcquireCameraImageBD.adoc[]
+--
+
+[open,refpage='XrCameraImageAcquireInfoBD',type='structs',desc='Information to acquire a camera image',xrefs='xrAcquireCameraImageBD']
+--
+The slink:XrCameraImageAcquireInfoBD structure is defined as:
+
+include::{generated}/api/structs/XrCameraImageAcquireInfoBD.adoc[]
+
+.Member Descriptions
+****
+* pname:type is the elink:XrStructureType of this structure.
+* pname:next is code:NULL or a pointer to the next structure in a chain.
+  No extensions currently define structures for this field.
+* pname:lastCaptureTime is the timestamp of the last acquired image.
+****
+
+Applications are recommended to pass the capture timestamp that the last
+call to flink:xrAcquireCameraImageBD returned as
+slink:XrCameraImageBD::pname:captureTime.
+The runtime must: return the most recent image that was captured after
+pname:lastCaptureTime.
+If no such image has been captured since the application successfully
+acquired an image with flink:xrAcquireCameraImageBD, the runtime must:
+return ename:XR_SUCCESS and set slink:XrCameraImageBD::pname:available to
+ename:XR_FALSE.
+
+Applications can: pass an arbitrary valid timestamp as
+pname:lastCaptureTime, or 0 to acquire the latest image without any
+constraint.
+
+If pname:lastCaptureTime is less than 0, the runtime must: return
+ename:XR_ERROR_TIME_INVALID.
+
+include::{generated}/validity/structs/XrCameraImageAcquireInfoBD.adoc[]
+--
+
+[open,refpage='XrCameraImageBD',type='structs',desc='Camera image information',xrefs='xrAcquireCameraImageBD']
+--
+The slink:XrCameraImageBD structure is defined as:
+
+include::{generated}/api/structs/XrCameraImageBD.adoc[]
+
+.Member Descriptions
+****
+* pname:type is the elink:XrStructureType of this structure.
+* pname:next is code:NULL or a pointer to the next structure in a chain.
+  No extensions currently define structures for this field.
+* pname:available is the basetype:XrBool32 indicating whether a new image is
+  available.
+* pname:captureTime is the timestamp when the image was captured.
+* pname:imageId is the ID of the acquired image (valid until released with
+  flink:xrReleaseCameraImageBD).
+****
+
+The pname:imageId is the ID of the acquired image and it is valid until
+released with flink:xrReleaseCameraImageBD.
+
+If pname:available is ename:XR_FALSE, the pname:imageId is invalid and the
+application must: not use it.
+
+include::{generated}/validity/structs/XrCameraImageBD.adoc[]
+--
+
+==== Get Camera Image Data
+[open,refpage='xrGetCameraImageDataBD',type='protos',desc='Retrieve image data for an acquired image',xrefs='XrCameraImageDataBaseHeaderBD']
+--
+The flink:xrGetCameraImageDataBD function is defined as:
+
+include::{generated}/api/protos/xrGetCameraImageDataBD.adoc[]
+
+.Parameter Descriptions
+****
+* pname:captureSession is a handle to an slink:XrCameraCaptureSessionBD.
+* pname:imageId is the basetype:XrCameraImageIdBD of the image to retrieve
+  data for.
+* pname:imageData is an output parameter for an
+  slink:XrCameraImageDataBaseHeaderBD child structure.
+****
+
+Applications call this function to get the pixel data for an acquired image.
+
+The runtime must: return ename:XR_ERROR_CAMERA_IMAGE_ID_INVALID_BD if
+pname:imageId is invalid or already released.
+The pname:imageData structure type must: match the data transfer type
+configured for the session (e.g. slink:XrCameraImageDataRawBufferBD for
+ename:XR_CAMERA_DATA_TRANSFER_TYPE_RAW_BUFFER_BD).
+
+include::{generated}/validity/protos/xrGetCameraImageDataBD.adoc[]
+--
+
+[open,refpage='XrCameraImageDataBaseHeaderBD',type='structs',desc='Base structure for camera image data',xrefs='xrGetCameraImageDataBD']
+--
+The slink:XrCameraImageDataBaseHeaderBD structure is defined as:
+
+include::{generated}/api/structs/XrCameraImageDataBaseHeaderBD.adoc[]
+
+.Member Descriptions
+****
+* pname:type is the elink:XrStructureType of this structure.
+* pname:next is code:NULL or a pointer to the next structure in a chain.
+****
+
+This structure is a base class for image data structures.
+It is not used directly; instead, its child structures (e.g.
+slink:XrCameraImageDataRawBufferBD) retrieve image data based on the capture
+session's data transfer configuration.
+
+If the pname:type does not match the session's data transfer type, the
+runtime must: return ename:XR_ERROR_VALIDATION_FAILURE.
+
+include::{generated}/validity/structs/XrCameraImageDataBaseHeaderBD.adoc[]
+--
+
+
+[open,refpage='XrCameraIntrinsicsBD',type='structs',desc='Intrinsics of a camera',xrefs='XrCameraImageDataBaseHeaderBD xrGetCameraImageDataBD']
+--
+
+The slink:XrCameraIntrinsicsBD structure is defined as:
+
+include::{generated}/api/structs/XrCameraIntrinsicsBD.adoc[]
+
+.Member Descriptions
+****
+* pname:type is the elink:XrStructureType of this structure.
+* pname:next is code:NULL or a pointer to the next structure in the
+  structure chain.
+* pname:focalLength is the camera's focal length in pixels, represented as a
+  2D value (fx, fy).
+* pname:principalPoint is the camera's principal point in pixels,
+  represented as a 2D value (cx, cy).
+  The image coordinate system has its origin (0,0) at the top-left pixel of
+  the image, with positive x increasing to the right and positive y
+  increasing downwards.
+* pname:fov is the camera's field of view (FOV) in degrees.
+****
+This structure describes the intrinsics of a camera, like focal length,
+principal point, and field of view (FOV).
+Even for the same camera device, the runtime may: return different
+intrinsics in different configurations.
+
+Applications can: get the intrinsics by chaining this structure to the next
+chain of an slink:XrCameraImageDataBaseHeaderBD's child structure, when they
+call flink:xrGetCameraImageDataBD.
+
+include::{generated}/validity/structs/XrCameraIntrinsicsBD.adoc[]
+--
+
+
+[open,refpage='XrCameraExtrinsicsBD',type='structs',desc='Extrinsics of a camera',xrefs='XrCameraImageDataBaseHeaderBD xrGetCameraImageDataBD']
+--
+The slink:XrCameraExtrinsicsBD structure is defined as:
+
+include::{generated}/api/structs/XrCameraExtrinsicsBD.adoc[]
+
+.Member Descriptions
+****
+* pname:type is the elink:XrStructureType of this structure.
+* pname:next is code:NULL or a pointer to the next structure in the
+  structure chain.
+* pname:pose is the camera's position and rotation relative to the
+  ename:XR_REFERENCE_SPACE_TYPE_VIEW reference space, at
+  slink:XrCameraImageBD::pname:captureTime.
+****
+
+This structure describes the extrinsics of a camera.
+
+Applications can: get the extrinsics by chaining this structure to the next
+chain of an slink:XrCameraImageDataBaseHeaderBD's child structure, when they
+call flink:xrGetCameraImageDataBD.
+
+include::{generated}/validity/structs/XrCameraExtrinsicsBD.adoc[]
+--
+
+
+[open,refpage='XrCameraImageDataRawBufferBD',type='structs',desc='Raw CPU buffer image data',xrefs='XrCameraImageDataBaseHeaderBD xrGetCameraImageDataBD']
+--
+The slink:XrCameraImageDataRawBufferBD structure is defined as:
+
+include::{generated}/api/structs/XrCameraImageDataRawBufferBD.adoc[]
+
+.Member Descriptions
+****
+* pname:type is the elink:XrStructureType of this structure.
+* pname:next is code:NULL or a pointer to the next structure in a chain.
+  It may: include slink:XrCameraIntrinsicsBD and/or
+  slink:XrCameraExtrinsicsBD to request intrinsics and/or extrinsics for the
+  retrieved image.
+* pname:width is the image width in pixels.
+* pname:height is the image height in pixels.
+* pname:stride is the number of bytes between the start of consecutive rows,
+  where pname:stride must: be [eq]#pname:stride {geq} pname:width {times}
+  pname:pixelStride#.
+* pname:bytesPerPixel is the number of bytes per pixel.
+* pname:pixelStride is the number of bytes between consecutive pixels (for
+  packed formats, this equals pname:bytesPerPixel), where pname:pixelStride
+  must: be [eq]#pname:pixelStride {geq} pname:bytesPerPixel#.
+* pname:bufferSize is the total size of the image pname:buffer in bytes,
+  where pname:bufferSize must: be [eq]#pname:bufferSize {geq} pname:stride
+  {times} pname:height#.
+* pname:buffer is a pointer to a runtime allocated buffer that contains the
+  raw image data.
+****
+
+This structure retrieves raw CPU buffer data for images transferred via
+ename:XR_CAMERA_DATA_TRANSFER_TYPE_RAW_BUFFER_BD.
+The runtime must: guarantee the pname:buffer's validity until the image is
+released.
+
+The application must: not access the buffer after calling
+flink:xrReleaseCameraImageBD with this image ID.
+
+include::{generated}/validity/structs/XrCameraImageDataRawBufferBD.adoc[]
+--
+
+==== Release Captured Image
+[open,refpage='xrReleaseCameraImageBD',type='protos',desc='Release an acquired camera image',xrefs='XrCameraImageIdBD']
+--
+The flink:xrReleaseCameraImageBD function is defined as:
+
+include::{generated}/api/protos/xrReleaseCameraImageBD.adoc[]
+
+.Parameter Descriptions
+****
+* pname:captureSession is a handle to an slink:XrCameraCaptureSessionBD.
+* pname:imageId is the basetype:XrCameraImageIdBD of the image to release.
+****
+
+Applications should: call this function to release resources for an acquired
+image when it is no longer needed.
+
+If pname:imageId is already released, the runtime must: return
+ename:XR_ERROR_CAMERA_IMAGE_ID_INVALID_BD.
+Destroying the associated slink:XrCameraCaptureSessionBD must: implicitly
+release all images for that capture session.
+
+Once an application releases a given image, the runtime must: not allow it
+to acquire that same image again.
+
+If the runtime allows acquiring more than one image, it must: allow
+releasing them in an order different than the acquire order.
+
+include::{generated}/validity/protos/xrReleaseCameraImageBD.adoc[]
+--
+
+==== Example Code
+[source,cpp]
+----
+// Enumerate available cameras with property filter and capability filter
+
+XrCameraPropertyFacingBD facingFilter {
+  .type = XR_TYPE_CAMERA_PROPERTY_FACING_BD,
+  .facing = XR_CAMERA_FACING_WORLD_BD,
+};
+
+XrCameraPropertyPositionBD positionFilter {
+  .type = XR_TYPE_CAMERA_PROPERTY_POSITION_BD,
+  .position = XR_CAMERA_POSITION_LEFT_BD,
+};
+
+std::vector<XrCameraPropertyBaseHeaderBD*> propertyFilters{
+    (XrCameraPropertyBaseHeaderBD *)&facingFilter,
+    (XrCameraPropertyBaseHeaderBD *)&positionFilter
+};
+
+XrCameraPropertiesBD filterProperties {
+  .type = XR_TYPE_CAMERA_PROPERTIES_BD,
+  .propertyCount = static_cast<uint32_t>(propertyFilters.size()),
+  .properties = propertyFilters.data(),
+};
+
+XrCameraCapabilityDataTransferTypeBD transferTypeFilter {
+  .type = XR_TYPE_CAMERA_CAPABILITY_DATA_TRANSFER_TYPE_BD,
+  .transferType = XR_CAMERA_DATA_TRANSFER_TYPE_RAW_BUFFER_BD,
+};
+
+XrCameraCapabilityImageFormatBD imageFormatFilter {
+  .type = XR_TYPE_CAMERA_CAPABILITY_IMAGE_FORMAT_BD,
+  .format = XR_CAMERA_IMAGE_FORMAT_RGBA_8888_BD,
+};
+
+XrCameraCapabilityCameraModelBD cameraModelFilter {
+  .type = XR_TYPE_CAMERA_CAPABILITY_CAMERA_MODEL_BD,
+  .model = XR_CAMERA_MODEL_PINHOLE_BD,
+};
+
+std::vector<XrCameraCapabilityBaseHeaderBD*> capabilityFilters{
+    (XrCameraCapabilityBaseHeaderBD *)&transferTypeFilter,
+    (XrCameraCapabilityBaseHeaderBD *)&imageFormatFilter,
+    (XrCameraCapabilityBaseHeaderBD *)&cameraModelFilter,
+};
+
+XrCameraCapabilitiesBD filterCapabilities {
+  .type = XR_TYPE_CAMERA_CAPABILITIES_BD,
+  .capabilityCount = static_cast<uint32_t>(capabilityFilters.size()),
+  .capabilities = capabilityFilters.data(),
+};
+
+XrAvailableCamerasEnumerateInfoBD enumerateInfo {
+  .type = XR_TYPE_AVAILABLE_CAMERAS_ENUMERATE_INFO_BD,
+  .properties = &filterProperties,
+  .capabilities = &filterCapabilities,
+};
+
+uint32_t cameraCount;
+xrEnumerateAvailableCamerasBD(instance, &enumerateInfo, 0, &cameraCount, NULL);
+
+std::vector<XrAvailableCameraBD> cameras(cameraCount);
+
+xrEnumerateAvailableCamerasBD(instance, &enumerateInfo, cameraCount, &cameraCount, cameras.data());
+if (cameraCount == 0)
+{
+    // Handle no camera available
+}
+
+// Get the 1st camera
+XrCameraIdBD targetCameraId = cameras[0].cameraId;
+
+// Create camera device
+XrCameraDeviceCreateInfoBD createDeviceInfo {
+  .type = XR_TYPE_CAMERA_DEVICE_CREATE_INFO_BD,
+  .cameraId = targetCameraId,
+};
+XrFutureEXT createDeviceFuture {XR_NULL_FUTURE_EXT};
+XrResult result = xrCreateCameraDeviceAsyncBD(instance, &createDeviceInfo, &createDeviceFuture);
+if (result != XR_SUCCESS)
+{
+    // Handle creation error
+}
+
+// Wait for device creation to complete
+waitUntilReady(createDeviceFuture);
+
+XrCreateCameraDeviceCompletionBD deviceCompletion {
+  .type = XR_TYPE_CREATE_CAMERA_DEVICE_COMPLETION_BD,
+};
+result = xrCreateCameraDeviceCompleteBD(instance, createDeviceFuture, &deviceCompletion);
+if (deviceCompletion.futureResult != XR_SUCCESS)
+{
+    // Handle async failure
+}
+XrCameraDeviceBD cameraDevice = deviceCompletion.device;
+
+// Check supported capability types
+XrCameraCapabilityTypesEnumerateInfoBD capabilityTypesEnumerateInfo {
+  .type = XR_TYPE_CAMERA_CAPABILITY_TYPES_ENUMERATE_INFO_BD,
+  .cameraId = targetCameraId,
+};
+
+XrCameraCapabilityTypesBD capabilityTypes {
+  .type = XR_TYPE_CAMERA_CAPABILITY_TYPES_BD,
+  .capabilityTypeCapacityInput = 0,
+};
+
+// First call to get capability type count
+result = xrEnumerateCameraCapabilityTypesBD(instance, &capabilityTypesEnumerateInfo, &capabilityTypes);
+
+if (result != XR_SUCCESS)
+{
+    // Handle enumeration error
+}
+
+if (capabilityTypes.capabilityTypeCountOutput == 0)
+{
+    // Handle no type count
+}
+
+// Second call to get the capability types
+std::vector<XrCameraCapabilityTypeBD> capabilityTypesArray(capabilityTypes.capabilityTypeCountOutput);
+capabilityTypes.capabilityTypeCapacityInput = capabilityTypes.capabilityTypeCountOutput;
+capabilityTypes.capabilityTypes = capabilityTypesArray.data();
+
+result = xrEnumerateCameraCapabilityTypesBD(instance, &capabilityTypesEnumerateInfo, &capabilityTypes);
+if (result != XR_SUCCESS)
+{
+    // Handle enumeration error
+}
+
+// Assume the XR_CAMERA_CAPABILITY_TYPE_IMAGE_RESOLUTION_AND_FRAME_RATE_BD is in the returned capabilityTypes
+
+// Get capability values.
+XrCameraSupportedCapabilityImageResolutionAndFrameRateBD supportedResAndFrameRate {
+  .type = XR_TYPE_CAMERA_SUPPORTED_CAPABILITY_IMAGE_RESOLUTION_AND_FRAME_RATE_BD,
+  .resolutionAndFrameRateCapacityInput = 0,
+  .resolutionAndFrameRateCountOutput = 0,
+  .resolutionAndFrameRates = nullptr,
+};
+
+XrCameraSupportedCapabilitiesGetInfoBD capabilityGetInfo {
+  .type = XR_TYPE_CAMERA_SUPPORTED_CAPABILITIES_GET_INFO_BD,
+  .id = targetCameraId,
+};
+
+std::vector<XrCameraSupportedCapabilityBaseHeaderBD*> supportedCapabilityValues{
+    (XrCameraSupportedCapabilityBaseHeaderBD *)&supportedResAndFrameRate
+};
+
+XrCameraSupportedCapabilitiesBD supportedCapabilities {
+  .type = XR_TYPE_CAMERA_SUPPORTED_CAPABILITIES_BD,
+  .capabilityCount = static_cast<uint32_t>(supportedCapabilityValues.size()),
+  .capabilities = supportedCapabilityValues.data(),
+};
+
+// First call to get supported value count
+result = xrGetCameraSupportedCapabilitiesBD(instance, &capabilityGetInfo, &supportedCapabilities);
+if (result != XR_SUCCESS)
+{
+    // Handle get error
+}
+
+if (supportedResAndFrameRate.resolutionAndFrameRateCountOutput == 0)
+{
+    // Handle no count error
+}
+
+uint32_t count = supportedResAndFrameRate.resolutionAndFrameRateCountOutput;
+
+std::vector<XrCameraImageResolutionAndFrameRateBD> resAndFrameRates(count);
+
+supportedResAndFrameRate.resolutionAndFrameRateCapacityInput = count;
+supportedResAndFrameRate.resolutionAndFrameRates = resAndFrameRates.data();
+
+// Second call to get supported capability values
+result = xrGetCameraSupportedCapabilitiesBD(instance, &capabilityGetInfo, &supportedCapabilities);
+if (result != XR_SUCCESS)
+{
+    // Handle get error
+}
+
+// Assume the resolution {1024, 768} and frame rate 30 are in the returned supportedCapabilities
+
+// Configure capture session (1024x768, 30 frame rate, raw buffer transfer, RGBA8888, pinhole model)
+XrCameraCapabilityImageResolutionAndFrameRateBD resAndFrameRateConfig {
+  .type = XR_TYPE_CAMERA_CAPABILITY_IMAGE_RESOLUTION_AND_FRAME_RATE_BD,
+  .resolution = {
+    .width = 1024,
+    .height = 768,
+  },
+  .frameRate = 30,
+};
+
+XrCameraCapabilityDataTransferTypeBD transferConfig {
+  .type = XR_TYPE_CAMERA_CAPABILITY_DATA_TRANSFER_TYPE_BD,
+  .transferType = XR_CAMERA_DATA_TRANSFER_TYPE_RAW_BUFFER_BD,
+};
+
+XrCameraCapabilityImageFormatBD formatConfig {
+  .type = XR_TYPE_CAMERA_CAPABILITY_IMAGE_FORMAT_BD,
+  .format = XR_CAMERA_IMAGE_FORMAT_RGBA_8888_BD,
+};
+
+XrCameraCapabilityCameraModelBD modelConfig {
+  .type = XR_TYPE_CAMERA_CAPABILITY_CAMERA_MODEL_BD,
+  .model = XR_CAMERA_MODEL_PINHOLE_BD,
+};
+
+std::vector<XrCameraCapabilityBaseHeaderBD*> sessionConfigs{
+    (XrCameraCapabilityBaseHeaderBD *)&resAndFrameRateConfig,
+    (XrCameraCapabilityBaseHeaderBD *)&transferConfig,
+    (XrCameraCapabilityBaseHeaderBD *)&formatConfig,
+    (XrCameraCapabilityBaseHeaderBD *)&modelConfig,
+};
+
+// Create capture session (async)
+XrCameraCaptureSessionCreateInfoBD createSessionInfo {
+  .type = XR_TYPE_CAMERA_CAPTURE_SESSION_CREATE_INFO_BD,
+  .camera = cameraDevice,
+  .configCount = static_cast<uint32_t>(sessionConfigs.size()),
+  .configs = sessionConfigs.data(),
+};
+XrFutureEXT createSessionFuture {XR_NULL_FUTURE_EXT};
+result = xrCreateCameraCaptureSessionAsyncBD(session, &createSessionInfo, &createSessionFuture);
+if (result != XR_SUCCESS)
+{
+    // Handle session creation error
+}
+
+// Wait for session creation to complete
+waitUntilReady(createSessionFuture);
+
+XrCreateCameraCaptureSessionCompletionBD sessionCompletion {
+  .type = XR_TYPE_CREATE_CAMERA_CAPTURE_SESSION_COMPLETION_BD,
+};
+result = xrCreateCameraCaptureSessionCompleteBD(session, createSessionFuture, &sessionCompletion);
+if (sessionCompletion.futureResult != XR_SUCCESS)
+{
+    // Handle async failure
+}
+XrCameraCaptureSessionBD captureSession = sessionCompletion.captureSession;
+
+// Begin capture
+XrCameraCaptureBeginInfoBD beginInfo {
+  .type = XR_TYPE_CAMERA_CAPTURE_BEGIN_INFO_BD,
+};
+result = xrBeginCameraCaptureBD(captureSession, &beginInfo);
+if (result != XR_SUCCESS)
+{
+    // Handle begin error
+}
+
+// Acquire and process images
+XrTime lastCaptureTime = 0;
+
+XrCameraImageAcquireInfoBD acquireInfo {
+  .type = XR_TYPE_CAMERA_IMAGE_ACQUIRE_INFO_BD,
+  .lastCaptureTime = lastCaptureTime,
+};
+
+XrCameraImageBD image {
+  .type = XR_TYPE_CAMERA_IMAGE_BD,
+};
+result = xrAcquireCameraImageBD(captureSession, &acquireInfo, &image);
+if (result != XR_SUCCESS)
+{
+    // Handle acquisition error
+}
+else if (image.available == XR_FALSE)
+{
+    // No new image yet;
+}
+else // New image available
+{
+    // Get image data (raw buffer), intrinsics and extrinsics
+    XrCameraExtrinsicsBD extrinsics {
+      .type = XR_TYPE_CAMERA_EXTRINSICS_BD,
+    };
+    XrCameraIntrinsicsBD intrinsics {
+      .type = XR_TYPE_CAMERA_INTRINSICS_BD,
+      .next = &extrinsics,
+    };
+    XrCameraImageDataRawBufferBD imageData {
+      .type = XR_TYPE_CAMERA_IMAGE_DATA_RAW_BUFFER_BD,
+      .next = &intrinsics,
+    };
+
+    result = xrGetCameraImageDataBD(captureSession, image.imageId, (XrCameraImageDataBaseHeaderBD *)&imageData);
+    if (result == XR_SUCCESS)
+    {
+        // Process image data, intrinsics and extrinsics
+    }
+
+    // Release image
+    xrReleaseCameraImageBD(captureSession, image.imageId);
+    lastCaptureTime = image.captureTime;
+}
+
+// Cleanup
+xrEndCameraCaptureBD(captureSession);
+xrDestroyCameraCaptureSessionBD(captureSession);
+xrDestroyCameraDeviceBD(cameraDevice);
+
+----
+
+
+include::{generated}/interfaces/XR_BD_camera_image.adoc[leveloffset=1]
+
+==== Issues
+
+
+==== Version History
+* Revision 1, 2025-10-10 (Zhipeng Liu, ByteDance)
+** Initial extension description
